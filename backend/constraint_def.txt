@@ -1,0 +1,5 @@
+[
+  {
+    "pg_get_constraintdef": "CHECK (((content_type)::text = ANY ((ARRAY['theory'::character varying, 'practice'::character varying, 'quiz'::character varying, 'project'::character varying])::text[])))"
+  }
+]

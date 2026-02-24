@@ -1,0 +1,44 @@
+﻿Γ£à PostgreSQL-ßâùßâÉßâ£ ßâÖßâÉßâòßâ¿ßâÿßâáßâÿ ßâ¼ßâÉßâáßâ¢ßâÉßâóßâößâæßâúßâÜßâÿßâÉ
+SCHEMA DUMP:
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé (index) Γöé table_name Γöé column_name         Γöé data_type                  Γöé
+Γö£ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöñ
+Γöé 0       Γöé 'courses'  Γöé 'id'                Γöé 'uuid'                     Γöé
+Γöé 1       Γöé 'courses'  Γöé 'title'             Γöé 'character varying'        Γöé
+Γöé 2       Γöé 'courses'  Γöé 'slug'              Γöé 'character varying'        Γöé
+Γöé 3       Γöé 'courses'  Γöé 'description'       Γöé 'text'                     Γöé
+Γöé 4       Γöé 'courses'  Γöé 'short_description' Γöé 'character varying'        Γöé
+Γöé 5       Γöé 'courses'  Γöé 'category'          Γöé 'character varying'        Γöé
+Γöé 6       Γöé 'courses'  Γöé 'difficulty'        Γöé 'character varying'        Γöé
+Γöé 7       Γöé 'courses'  Γöé 'level'             Γöé 'integer'                  Γöé
+Γöé 8       Γöé 'courses'  Γöé 'icon'              Γöé 'character varying'        Γöé
+Γöé 9       Γöé 'courses'  Γöé 'color'             Γöé 'character varying'        Γöé
+Γöé 10      Γöé 'courses'  Γöé 'estimated_hours'   Γöé 'numeric'                  Γöé
+Γöé 11      Γöé 'courses'  Γöé 'total_lessons'     Γöé 'integer'                  Γöé
+Γöé 12      Γöé 'courses'  Γöé 'total_xp'          Γöé 'integer'                  Γöé
+Γöé 13      Γöé 'courses'  Γöé 'is_published'      Γöé 'boolean'                  Γöé
+Γöé 14      Γöé 'courses'  Γöé 'sort_order'        Γöé 'integer'                  Γöé
+Γöé 15      Γöé 'courses'  Γöé 'prerequisites'     Γöé 'ARRAY'                    Γöé
+Γöé 16      Γöé 'courses'  Γöé 'created_by'        Γöé 'uuid'                     Γöé
+Γöé 17      Γöé 'courses'  Γöé 'created_at'        Γöé 'timestamp with time zone' Γöé
+Γöé 18      Γöé 'courses'  Γöé 'updated_at'        Γöé 'timestamp with time zone' Γöé
+Γöé 19      Γöé 'lessons'  Γöé 'id'                Γöé 'uuid'                     Γöé
+Γöé 20      Γöé 'lessons'  Γöé 'course_id'         Γöé 'uuid'                     Γöé
+Γöé 21      Γöé 'lessons'  Γöé 'title'             Γöé 'character varying'        Γöé
+Γöé 22      Γöé 'lessons'  Γöé 'slug'              Γöé 'character varying'        Γöé
+Γöé 23      Γöé 'lessons'  Γöé 'content'           Γöé 'text'                     Γöé
+Γöé 24      Γöé 'lessons'  Γöé 'content_type'      Γöé 'character varying'        Γöé
+Γöé 25      Γöé 'lessons'  Γöé 'starter_code'      Γöé 'text'                     Γöé
+Γöé 26      Γöé 'lessons'  Γöé 'solution_code'     Γöé 'text'                     Γöé
+Γöé 27      Γöé 'lessons'  Γöé 'challenge_text'    Γöé 'text'                     Γöé
+Γöé 28      Γöé 'lessons'  Γöé 'hints'             Γöé 'ARRAY'                    Γöé
+Γöé 29      Γöé 'lessons'  Γöé 'expected_output'   Γöé 'text'                     Γöé
+Γöé 30      Γöé 'lessons'  Γöé 'test_cases'        Γöé 'jsonb'                    Γöé
+Γöé 31      Γöé 'lessons'  Γöé 'language'          Γöé 'character varying'        Γöé
+Γöé 32      Γöé 'lessons'  Γöé 'xp_reward'         Γöé 'integer'                  Γöé
+Γöé 33      Γöé 'lessons'  Γöé 'sort_order'        Γöé 'integer'                  Γöé
+Γöé 34      Γöé 'lessons'  Γöé 'is_published'      Γöé 'boolean'                  Γöé
+Γöé 35      Γöé 'lessons'  Γöé 'estimated_minutes' Γöé 'integer'                  Γöé
+Γöé 36      Γöé 'lessons'  Γöé 'created_at'        Γöé 'timestamp with time zone' Γöé
+Γöé 37      Γöé 'lessons'  Γöé 'updated_at'        Γöé 'timestamp with time zone' Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ

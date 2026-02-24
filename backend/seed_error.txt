@@ -1,0 +1,4 @@
+error: ახალი მწკრივი ურთიერთობისთვის "lessons" არღვევს შემოწმების შეზღუდვას "lessons_content_type_check"
+    at C:\Users\Ramaz\OneDrive\Desktop\Full-Stach for Teach site\backend\node_modules\pg\lib\client.js:624:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async seedLevel1 (C:\Users\Ramaz\OneDrive\Desktop\Full-Stach for Teach site\backend\src\scripts\seed_level1.js:106:7)

@@ -1,0 +1,4 @@
+✅ Connected to DB
+Tables: courses, users, lessons, user_progress, code_submissions, user_achievements, achievements, quizzes, quiz_questions, quiz_attempts, notifications, course_enrollments, comments
+User columns: updated_at (timestamp with time zone), streak_days (integer), last_active_date (date), longest_streak (integer), is_active (boolean), email_verified (boolean), created_at (timestamp with time zone), id (uuid), xp_points (integer), level (integer), email (character varying), username (character varying), password_hash (character varying), full_name (character varying), avatar_url (character varying), role (character varying), bio (text)
+Users: [{"id":"a0000000-0000-0000-0000-000000000002","email":"test@codelearning.ge","username":"testuser","is_active":true},{"id":"a0000000-0000-0000-0000-000000000001","email":"admin@codelearning.ge","username":"admin","is_active":true}]
