@@ -1,7 +1,10 @@
 node_modules
 .env
+.env.*
 *.log
 .DS_Store
 dist
 build
 .git
+setup_neon_db.js
+*.sql
