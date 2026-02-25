@@ -38,7 +38,12 @@ export default function LoginPage() {
                         </div>
 
                         <div>
-                            <label className="block text-dark-300 text-sm font-medium mb-2">პაროლი</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-dark-300 text-sm font-medium">პაროლი</label>
+                                <Link to="/forgot-password" title="პაროლის აღდგენა" className="text-xs text-primary-400 hover:text-primary-300">
+                                    დაგავიწყდათ პაროლი?
+                                </Link>
+                            </div>
                             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                                 className="input-field" placeholder="••••••••" required />
                         </div>

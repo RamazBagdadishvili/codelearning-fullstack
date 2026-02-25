@@ -1,3 +1,23 @@
 node_modules
 .env
 .DS_Store
+*.log
+*.txt
+*.json
+!package.json
+!package-lock.json
+!vercel.json
+*.js.bak
+# Temporary scripts
+find_user.js
+reset_password.js
+migrate_forgot_password.js
+check.js
+diag.js
+test_*.js
+update_*.js
+reseed_*.js
+genHash.js
+get_schema.js
+fix_*.js
+force_*.js

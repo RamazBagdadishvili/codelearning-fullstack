@@ -4,7 +4,7 @@
 
 const router = require('express').Router();
 const { body } = require('express-validator');
-const { register, login, getProfile, updateProfile } = require('../controllers/authController');
+const { register, login, getProfile, updateProfile, forgotPassword, resetPassword } = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const validate = require('../middleware/validate');
 
@@ -26,5 +26,16 @@ router.post('/login', [
 // პროფილი
 router.get('/me', auth, getProfile);
 router.put('/profile', auth, updateProfile);
+
+// პაროლის აღდგენა
+router.post('/forgot-password', [
+    body('email').isEmail().withMessage('გთხოვთ შეიყვანოთ სწორი ელ-ფოსტა.'),
+    validate
+], forgotPassword);
+
+router.post('/reset-password/:token', [
+    body('password').isLength({ min: 6 }).withMessage('პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო.'),
+    validate
+], resetPassword);
 
 module.exports = router;

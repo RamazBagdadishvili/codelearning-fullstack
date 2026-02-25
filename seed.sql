@@ -3,7 +3,7 @@
 -- Seed Data - საწყისი მონაცემები
 -- ============================================
 
--- ადმინ მომხმარებელი (პაროლი: Admin123!)
+-- ადმინ მომხმარებელი (Bcrypt Hash)
 -- bcrypt hash for 'Admin123!'
 INSERT INTO users (id, email, username, password_hash, full_name, role, xp_points, level)
 VALUES (
@@ -17,7 +17,7 @@ VALUES (
     10
 );
 
--- სატესტო მომხმარებელი (პაროლი: Test123!)
+-- სატესტო მომხმარებელი (Bcrypt Hash)
 INSERT INTO users (id, email, username, password_hash, full_name, role, xp_points, level)
 VALUES (
     'a0000000-0000-0000-0000-000000000002',

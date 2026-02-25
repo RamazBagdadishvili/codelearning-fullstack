@@ -4,7 +4,9 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { query } = require('../config/db');
+const sendEmail = require('../utils/emailService');
 
 // ტოკენის გენერაცია
 const generateToken = (userId) => {
@@ -211,4 +213,96 @@ const updateProfile = async (req, res, next) => {
     }
 };
 
-module.exports = { register, login, getProfile, updateProfile };
+// ============================================
+// პაროლის აღდგენის მოთხოვნა
+// POST /api/auth/forgot-password
+// ============================================
+const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        const user = await query('SELECT id, email, username FROM users WHERE email = $1', [email]);
+
+        if (user.rows.length === 0) {
+            return res.status(404).json({ error: 'მომხმარებელი ამ ელ-ფოსტით ვერ მოიძებნა.' });
+        }
+
+        // ტოკენის გენერაცია
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+        const expireDate = new Date(Date.now() + 3600000); // 1 საათი
+
+        await query(
+            'UPDATE users SET reset_password_token = $1, reset_password_expires = $2 WHERE id = $3',
+            [tokenHash, expireDate, user.rows[0].id]
+        );
+
+        // ბმულის შექმნა
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+
+        const message = `
+            <h1>პაროლის აღდგენა</h1>
+            <p>თქვენ მიიღეთ ეს იმეილი, რადგან თქვენ (ან სხვამ) მოითხოვეთ პაროლის აღდგენა თქვენს ანგარიშზე.</p>
+            <p>გთხოვთ დააჭიროთ ქვემოთ მოცემულ ბმულს პაროლის შესაცვლელად:</p>
+            <a href="${resetUrl}" style="background: #4f46e5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">პაროლის შეცვლა</a>
+            <p>ეს ბმული ვალიდურია 1 საათის განმავლობაში.</p>
+            <p>თუ ეს თქვენ არ ყოფილხართ, გთხოვთ უგულებელყოთ ეს წერილი.</p>
+        `;
+
+        try {
+            await sendEmail({
+                email: user.rows[0].email,
+                subject: 'პაროლის აღდგენა - CodeLearning',
+                html: message
+            });
+
+            res.json({ message: 'აღდგენის ინსტრუქცია გაიგზავნა თქვენს ელ-ფოსტაზე.' });
+        } catch (err) {
+            await query(
+                'UPDATE users SET reset_password_token = NULL, reset_password_expires = NULL WHERE id = $1',
+                [user.rows[0].id]
+            );
+            return res.status(500).json({ error: 'იმეილის გაგზავნა ვერ მოხერხდა. სცადეთ მოგვიანებით.' });
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
+// ============================================
+// პაროლის განახლება ტოკენით
+// POST /api/auth/reset-password/:token
+// ============================================
+const resetPassword = async (req, res, next) => {
+    try {
+        const resetToken = req.params.token;
+        const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        const result = await query(
+            'SELECT id FROM users WHERE reset_password_token = $1 AND reset_password_expires > NOW()',
+            [tokenHash]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(400).json({ error: 'აღდგენის ბმული არასწორია ან ვადაგასული.' });
+        }
+
+        const userId = result.rows[0].id;
+        const { password } = req.body;
+
+        // ახალი პაროლის ჰეშირება
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(password, salt);
+
+        await query(
+            'UPDATE users SET password_hash = $1, reset_password_token = NULL, reset_password_expires = NULL WHERE id = $2',
+            [passwordHash, userId]
+        );
+
+        res.json({ message: 'პაროლი წარმატებით განახლდა. ახლა შეგიძლიათ შეხვიდეთ ახალი პაროლით.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { register, login, getProfile, updateProfile, forgotPassword, resetPassword };
