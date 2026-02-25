@@ -1,0 +1,10 @@
+{
+  "name": "codelearning-frontend",
+  "version": "1.0.0",
+  "routes": [
+    {
+      "route": "/*",
+      "serve": "index.html"
+    }
+  ]
+}

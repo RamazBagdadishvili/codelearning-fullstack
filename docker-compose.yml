@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: codelearning-db
+    restart: always
+    environment:
+      POSTGRES_DB: codelearning
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_secure_password_here
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    container_name: codelearning-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:your_secure_password_here@db:5432/codelearning
+      - PORT=5000
+      - NODE_ENV=production
+      - JWT_SECRET=your_new_jwt_secret_here
+      - CORS_ORIGIN=https://mycodelearning.com
+      - FRONTEND_URL=https://mycodelearning.com
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

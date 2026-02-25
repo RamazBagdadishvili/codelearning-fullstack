@@ -1,4 +1,4 @@
-# 📖 სრული Setup Guide — CodeLearning პლატფორმა
+# 📖 სრული Setup Guide — CodeLearning პლატფორმა (Updated: 2026-02-25)
 
 ## წინაპირობები
 
@@ -208,6 +208,60 @@ frontend/src/
 
 ---
 
+---
+
+## 🚀 DigitalOcean Deployment ($4 Droplet - Backend & DB)
+
+ეს არის ყველაზე იაფი გზა, სადაც Backend და Database ერთად იქნება.
+
+### 1. Droplet-ის შექმნა
+1. DigitalOcean-ზე შექმენით **Droplet**.
+2. **OS**: Ubuntu 22.04 ან 24.04 (LTS).
+3. **Plan**: Shared CPU -> Basic -> **Regular with SSD ($4/month)**.
+4. **Authentication**: პაროლი (შეინახეთ კარგად).
+
+### 2. სერვერის გამართვა
+როგორც კი droplet-ი ჩაირთვება, შედით მასში SSH-ით და გაუშვით ეს ბრძანება (ის ავტომატურად დააყენებს Node.js-ს და PostgreSQL-ს):
+
+```bash
+# ჯერ დააყენეთ git:
+sudo apt update && sudo apt install git -y
+
+# შემდეგ დააკლონეთ რეპო (შეცვალეთ თქვენი ლინკით):
+git clone https://github.com/RamazBagdadishvili/codelearning-fullstack.git /var/www/codelearning
+cd /var/www/codelearning
+
+# გაუშვით setup სკრიპტი:
+chmod +x setup_server.sh
+./setup_server.sh
+```
+
+### 3. აპლიკაციის კონფიგურაცია
+1. შექმენით `.env` ფაილი სერვერზე: `nano /var/www/codelearning/backend/.env`
+2. დააკოპირეთ `.env.production`-დან მონაცემები და შეცვალეთ პაროლები.
+3. ბაზის ცხრილების შექმნა:
+   ```bash
+   sudo -u postgres psql -d codelearning -f /var/www/codelearning/schema.sql
+   sudo -u postgres psql -d codelearning -f /var/www/codelearning/seed.sql
+   ```
+4. გაშვება PM2-ით:
+   ```bash
+   cd /var/www/codelearning/backend
+   npm install
+   pm2 start src/index.js --name "backend"
+   ```
+
+---
+
+## ☁️ Cloudflare Pages (Frontend)
+1. შექმენით ახალი პროექტი Pages-ზე.
+2. Root directory: `frontend`.
+3. Build command: `npm run build`.
+4. Output directory: `dist`.
+5. Environment Variable: `VITE_API_URL` = `https://api.mycodelearning.com/api`.
+
+---
+
 ## Troubleshooting
 
 ### PostgreSQL კონექშენის შეცდომა
@@ -217,6 +271,9 @@ frontend/src/
 
 ### CORS შეცდომა
 - შეამოწმეთ `CORS_ORIGIN` `.env` ფაილში ემთხვევა frontend-ის URL-ს
+
+### Cloudflare Build Error (npm ci)
+- თუ Cloudflare-ზე build ვარდება `npm ci` შეცდომით (lock file mismatch), შეცვალეთ **Build command** `npm install && npm run build`-ით ან დარწმუნდით, რომ `package-lock.json` სინქრონიზებულია.
 
 ### JWT შეცდომა
 - შეამოწმეთ `JWT_SECRET` დაყენებულია `.env` ფაილში
