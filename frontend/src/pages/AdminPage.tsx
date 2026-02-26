@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../stores/authStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { formatXP } from '../utils/formatters';
 import CodeEditor from '../components/CodeEditor';
 import { useConfirm } from '../hooks/useConfirm';
 import { HiCog, HiPencil, HiDuplicate, HiChartBar, HiBeaker, HiEye, HiX, HiCode } from 'react-icons/hi';
@@ -1591,7 +1592,7 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                             </div>
                                                         ) : (
                                                             <div className="flex items-center justify-center space-x-1">
-                                                                <span className="text-amber-400 font-bold text-xs">⚡ {u.xp_points || 0}</span>
+                                                                <span className="text-amber-400 font-bold text-xs">⚡ {formatXP(u.xp_points || 0)}</span>
                                                                 <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
                                                                     className="p-1 rounded-lg bg-dark-800 text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all">
                                                                     <HiPencil className="w-3 h-3" />
@@ -1672,7 +1673,7 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <span className="text-amber-400 font-bold text-sm">⚡ {u.xp_points || 0}</span>
+                                                    <span className="text-amber-400 font-bold text-sm">⚡ {formatXP(u.xp_points || 0)}</span>
                                                     <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
                                                         className="p-1.5 rounded-lg bg-dark-800 text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all opacity-0 group-hover:opacity-100">
                                                         <HiPencil className="w-3.5 h-3.5" />
@@ -1865,7 +1866,7 @@ function AchievementsTab() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const { confirm, ConfirmDialog } = useConfirm();
 
-    const initForm = { title: '', description: '', badgeIcon: '🏆', badgeColor: '#FFD700', criteriaType: 'lessons_completed', criteriaValue: 5, xpReward: 50, category: 'general', sortOrder: 0 };
+    const initForm = { title: '', description: '', badgeIcon: '🏆', badgeColor: '#FFD700', criteriaType: 'lessons_completed', criteriaValue: 5, xpReward: 50, category: 'general', sortOrder: 0, isSecret: false };
     const [form, setForm] = useState(initForm);
 
     const fetchAchievements = async () => {
@@ -1938,6 +1939,11 @@ function AchievementsTab() {
                                     <input type="color" value={form.badgeColor} onChange={e => setForm({ ...form, badgeColor: e.target.value })} className="h-10 cursor-pointer" />
                                     <input value={form.badgeColor} onChange={e => setForm({ ...form, badgeColor: e.target.value })} className="input-field flex-1" />
                                 </div>
+                                +                            </div>
+                            +                            <div className="flex items-center space-x-2 bg-dark-900/50 p-3 rounded-xl border border-dark-700">
+                                +                                <input type="checkbox" id="isSecret" checked={form.isSecret} onChange={e => setForm({ ...form, isSecret: e.target.checked })} className="w-4 h-4 rounded border-dark-600 bg-dark-900 text-primary-600 focus:ring-primary-500" />
+                                +                                <label htmlFor="isSecret" className="text-sm text-white font-medium cursor-pointer">Sეიდუმლო მიღწევა (Secret)</label>
+                                +                                <p className="text-[10px] text-dark-500 ml-auto">იქნება დამალული (???) სანამ არ მოიპოვება</p>
                             </div>
                             <div className="md:col-span-2"><label className="text-sm text-dark-300">აღწერა</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="input-field" /></div>
                         </div>
@@ -1958,9 +1964,10 @@ function AchievementsTab() {
                             <div className="flex justify-between"><span>ტიპი:</span> <span className="text-white">{ach.criteria_type} = {ach.criteria_value}</span></div>
                             <div className="flex justify-between"><span>ჯილდო:</span> <span className="text-amber-400">⚡ {ach.xp_reward} XP</span></div>
                             <div className="flex justify-between"><span>აქვთ:</span> <span className="text-primary-400">{ach.earned_count} მომხმარებელს</span></div>
+                            +                            {ach.is_secret && <div className="text-[10px] text-amber-500 font-bold uppercase tracking-wider mt-1 flex items-center gap-1">🤫 საიდუმლო</div>}
                         </div>
                         <div className="flex space-x-2 mt-auto">
-                            <button onClick={() => { setEditingId(ach.id); setForm({ title: ach.title, description: ach.description, badgeIcon: ach.badge_icon, badgeColor: ach.badge_color, criteriaType: ach.criteria_type, criteriaValue: ach.criteria_value, xpReward: ach.xp_reward, category: ach.category, sortOrder: ach.sort_order }); setIsCreating(false); }} className="flex-1 bg-dark-700 hover:bg-amber-500/20 text-amber-400 py-1.5 rounded-lg text-sm transition-colors">✏️ რედაქტირება</button>
+                            <button onClick={() => { setEditingId(ach.id); setForm({ title: ach.title, description: ach.description, badgeIcon: ach.badge_icon, badgeColor: ach.badge_color, criteriaType: ach.criteria_type, criteriaValue: ach.criteria_value, xpReward: ach.xp_reward, category: ach.category, sortOrder: ach.sort_order, isSecret: ach.is_secret }); setIsCreating(false); }} className="flex-1 bg-dark-700 hover:bg-amber-500/20 text-amber-400 py-1.5 rounded-lg text-sm transition-colors">✏️ რედაქტირება</button>
                             <button onClick={() => handleDelete(ach.id, ach.title)} className="bg-dark-700 hover:bg-red-500/20 text-red-500 px-3 py-1.5 rounded-lg transition-colors">🗑️</button>
                         </div>
                     </div>

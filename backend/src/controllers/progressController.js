@@ -12,7 +12,9 @@ const getUserProgress = async (req, res, next) => {
         const coursesResult = await query(
             `SELECT c.id, c.title, c.slug, c.icon, c.color, c.level, c.total_lessons,
               ce.progress_percentage, ce.enrolled_at,
-              (SELECT COUNT(*) FROM user_progress up WHERE up.user_id = $1 AND up.course_id = c.id AND up.status = 'completed') as completed_lessons
+              (SELECT COUNT(*) FROM user_progress up WHERE up.user_id = $1 AND up.course_id = c.id AND up.status = 'completed') as completed_lessons,
+              (SELECT l.slug FROM user_progress up JOIN lessons l ON l.id = up.lesson_id WHERE up.user_id = $1 AND up.course_id = c.id ORDER BY up.last_attempt_at DESC LIMIT 1) as last_lesson_slug,
+              (SELECT MAX(up.last_attempt_at) FROM user_progress up WHERE up.user_id = $1 AND up.course_id = c.id) as last_active_at
        FROM course_enrollments ce
        JOIN courses c ON c.id = ce.course_id
        WHERE ce.user_id = $1

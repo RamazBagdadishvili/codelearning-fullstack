@@ -65,7 +65,8 @@ const register = async (req, res, next) => {
                 fullName: user.full_name,
                 role: user.role,
                 xpPoints: user.xp_points,
-                level: user.level
+                level: user.level,
+                enrollments: []
             }
         });
     } catch (error) {
@@ -131,11 +132,11 @@ const login = async (req, res, next) => {
                 email: user.email,
                 username: user.username,
                 fullName: user.full_name,
-                role: user.role,
                 xpPoints: user.xp_points,
                 level: user.level,
                 streakDays: newStreak,
-                avatarUrl: user.avatar_url
+                avatarUrl: user.avatar_url,
+                enrollments: (await query('SELECT course_id, progress_percentage FROM course_enrollments WHERE user_id = $1', [user.id])).rows
             }
         });
     } catch (error) {
@@ -155,7 +156,8 @@ const getProfile = async (req, res, next) => {
               (SELECT COUNT(*) FROM user_progress WHERE user_id = $1 AND status = 'completed') as completed_lessons,
               (SELECT COUNT(DISTINCT course_id) FROM course_enrollments WHERE user_id = $1) as enrolled_courses,
               (SELECT COUNT(*) FROM user_achievements WHERE user_id = $1) as total_achievements,
-              (SELECT COUNT(*) FROM code_submissions WHERE user_id = $1) as total_submissions
+              (SELECT COUNT(*) FROM code_submissions WHERE user_id = $1) as total_submissions,
+              (SELECT COALESCE(json_agg(json_build_object('course_id', course_id, 'progress_percentage', progress_percentage)), '[]') FROM course_enrollments WHERE user_id = $1) as enrollments
        FROM users WHERE id = $1`,
             [req.user.id]
         );
@@ -179,6 +181,7 @@ const getProfile = async (req, res, next) => {
                 longestStreak: user.longest_streak,
                 bio: user.bio,
                 createdAt: user.created_at,
+                enrollments: user.enrollments,
                 stats: {
                     completedLessons: parseInt(user.completed_lessons),
                     enrolledCourses: parseInt(user.enrolled_courses),

@@ -853,13 +853,13 @@ const createAchievement = async (req, res, next) => {
 const updateAchievement = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { title, description, badgeIcon, badgeColor, criteriaType, criteriaValue, xpReward, category, sortOrder } = req.body;
+        const { title, description, badgeIcon, badgeColor, criteriaType, criteriaValue, xpReward, category, sortOrder, isSecret } = req.body;
 
         const result = await query(
             `UPDATE achievements SET title=$1, description=$2, badge_icon=$3, badge_color=$4, 
-             criteria_type=$5, criteria_value=$6, xp_reward=$7, category=$8, sort_order=$9
-             WHERE id=$10 RETURNING *`,
-            [title, description, badgeIcon, badgeColor, criteriaType, criteriaValue, xpReward, category, sortOrder, id]
+             criteria_type=$5, criteria_value=$6, xp_reward=$7, category=$8, sort_order=$9, is_secret=$10
+             WHERE id=$11 RETURNING *`,
+            [title, description, badgeIcon, badgeColor, criteriaType, criteriaValue, xpReward, category, sortOrder, isSecret, id]
         );
 
         if (result.rows.length === 0) return res.status(404).json({ error: 'მიღწევა ვერ მოიძებნა.' });

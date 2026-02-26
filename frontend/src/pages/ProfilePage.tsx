@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { HiUser, HiMail, HiCalendar, HiPencil, HiCheck, HiX, HiStar, HiFire, HiTrendingUp, HiBadgeCheck, HiAcademicCap } from 'react-icons/hi';
+import { Link } from 'react-router-dom';
+import { HiUser, HiMail, HiCalendar, HiPencil, HiCheck, HiX, HiStar, HiFire, HiTrendingUp, HiBadgeCheck, HiAcademicCap, HiArrowRight, HiTrendingUp as HiTrendingUpIcon } from 'react-icons/hi';
 import api from '../api/axios';
 import { useConfirm } from '../hooks/useConfirm';
 import toast from 'react-hot-toast';
 import { formatXP } from '../utils/formatters';
 import ActivityHeatmap from '../components/ActivityHeatmap';
+import { formatDistanceToNow } from 'date-fns';
+import { ka } from 'date-fns/locale';
 
 export default function ProfilePage() {
     const { user, fetchProfile } = useAuthStore();
@@ -212,40 +215,48 @@ export default function ProfilePage() {
                 <div>
                     <h2 className="text-lg font-bold text-white mb-4">ჩემი კურსები</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {progress.courses.map((course: any) => (
-                            <div key={course.id} className="card p-5 relative group">
+                        {progress.courses.map((c: any) => (
+                            <div key={c.id} className="card p-5 relative group">
                                 <button
                                     onClick={async () => {
-                                        if (!(await confirm(`ნამდვილად გსურთ კურსის "${course.title}" ამოშლა?`))) return;
+                                        if (!(await confirm(`ნამდვილად გსურთ კურსის "${c.title}" ამოშლა?`))) return;
                                         try {
-                                            await api.delete(`/courses/${course.id}/unenroll`);
+                                            await api.delete(`/courses/${c.id}/unenroll`);
                                             // Refresh progress
                                             const { data } = await api.get('/progress');
                                             setProgress(data);
-                                        } catch (err: any) {
-                                            // Optional: toast error
-                                        }
+                                        } catch (err: any) { }
                                     }}
                                     className="absolute top-4 right-4 p-2 text-dark-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all font-bold"
                                     title="კურსის ამოშლა"
-                                    aria-label="კურსის ამოშლა"
                                 >
                                     <HiX className="w-5 h-5" />
                                 </button>
-                                <div className="flex items-center space-x-3 mb-3">
-                                    <span className="text-2xl">{course.icon}</span>
-                                    <div>
-                                        <h3 className="text-white font-semibold">{course.title}</h3>
-                                        <p className="text-dark-500 text-sm">Level {course.level}</p>
+                                <div className="flex items-center space-x-4 mb-4">
+                                    <span className="text-3xl filter drop-shadow-sm">{c.icon}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-white font-bold truncate">{c.title}</h3>
+                                        {c.last_active_at && (
+                                            <p className="text-[10px] text-dark-500 font-bold uppercase tracking-wider">
+                                                ბოლოს აქტიური: {formatDistanceToNow(new Date(c.last_active_at), { addSuffix: true, locale: ka })}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between text-sm text-dark-400 mb-2">
-                                    <span>{course.completed_lessons}/{course.total_lessons} ლექცია</span>
-                                    <span>{Math.round(course.progress_percentage || (course.total_lessons > 0 ? (course.completed_lessons / course.total_lessons) * 100 : 0))}%</span>
+                                <div className="flex items-center justify-between text-xs mb-2">
+                                    <span className="text-dark-400 font-medium">{c.completed_lessons}/{c.total_lessons} ლექცია</span>
+                                    <span className="text-primary-400 font-bold">{c.progress_percentage}%</span>
                                 </div>
-                                <div className="progress-bar h-2">
-                                    <div className="progress-fill" style={{ width: `${course.progress_percentage || (course.total_lessons > 0 ? (course.completed_lessons / course.total_lessons) * 100 : 0)}%` }} />
+                                <div className="progress-bar h-1.5 mb-4">
+                                    <div className="progress-fill" style={{ width: `${c.progress_percentage}%` }} />
                                 </div>
+                                <Link
+                                    to={`/courses/${c.slug}/${c.last_lesson_slug || 'introduction'}`}
+                                    className="inline-flex items-center justify-center space-x-2 w-full py-2 bg-primary-600/10 hover:bg-primary-600 text-primary-400 hover:text-white rounded-xl text-xs font-bold transition-all border border-primary-500/20 hover:border-primary-500 group/btn"
+                                >
+                                    <span>{c.progress_percentage === 100 ? 'გავლა თავიდან' : 'გაგრძელება'}</span>
+                                    <HiArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+                                </Link>
                             </div>
                         ))}
                     </div>

@@ -342,7 +342,7 @@ export default function LessonPage() {
 
     // ── Submit ──
     const handleSubmit = async () => {
-        if (!lesson) return;
+        if (!lesson || isSubmitting) return;
         setIsSubmitting(true);
         try {
             // Bug 10: State 'code' already tracks the editor's latest value via CodeEditor's onChange, ensuring accurate submission.
