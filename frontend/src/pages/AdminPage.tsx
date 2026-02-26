@@ -294,10 +294,15 @@ export default function AdminPage() {
                 challengeText: lessonForm.challengeText,
                 language: lessonForm.language
             });
-            setLessonForm(prev => ({ ...prev, testCases: [...prev.testCases, ...data.testCases] }));
-            toast.success('ტესტები წარმატებით დაგენერირდა!', { id: loadingToast });
-        } catch (err) {
-            toast.error('ვერ მოხერხდა ტესტების გენერირება', { id: loadingToast });
+            // Bug 2: Check if tests actually generated
+            if (data.testCases && data.testCases.length > 0) {
+                setLessonForm(prev => ({ ...prev, testCases: [...prev.testCases, ...data.testCases] }));
+                toast.success('ტესტები წარმატებით დაგენერირდა!', { id: loadingToast });
+            } else {
+                toast.error('AI-მ ვერ შექმნა შესაბამისი ტესტები ამ დავალებისთვის', { id: loadingToast });
+            }
+        } catch (err: any) {
+            toast.error(err.response?.data?.error || 'ვერ მოხერხდა ტესტების გენერირება', { id: loadingToast });
         } finally {
             setIsGenerating(prev => ({ ...prev, tests: false }));
         }
@@ -610,12 +615,20 @@ export default function AdminPage() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-dark-300 text-sm mb-1">სათაური</label>
-                                                <input value={courseForm.title} onChange={e => setCourseForm({ ...courseForm, title: e.target.value })}
+                                                <input value={courseForm.title} onChange={e => {
+                                                    const newTitle = e.target.value;
+                                                    const autoSlug = newTitle.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+                                                    setCourseForm(prev => ({
+                                                        ...prev,
+                                                        title: newTitle,
+                                                        slug: prev.slug === '' || prev.slug === newTitle.substring(0, newTitle.length - 1).toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-') ? autoSlug : prev.slug
+                                                    }));
+                                                }}
                                                     className="input-field" required />
                                             </div>
                                             <div>
                                                 <label className="block text-dark-300 text-sm mb-1">ბმულის მისამართი (Slug)</label>
-                                                <input value={courseForm.slug} onChange={e => setCourseForm({ ...courseForm, slug: e.target.value })}
+                                                <input value={courseForm.slug} onChange={e => setCourseForm({ ...courseForm, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                                                     className="input-field" required placeholder="მაგ: html-course" />
                                             </div>
                                             <div>
@@ -1201,12 +1214,25 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                         </td>
                                         {/* Level */}
                                         <td className="p-4 text-center">
-                                            <div className="flex items-center justify-center space-x-1">
-                                                <button onClick={() => handleLevelChange(u.id, -1, u.level)}
-                                                    className="w-6 h-6 rounded bg-dark-700 hover:bg-red-500/20 text-dark-400 hover:text-red-400 text-xs font-bold transition-colors">−</button>
-                                                <span className="text-primary-400 font-bold text-sm w-8 text-center">{u.level}</span>
-                                                <button onClick={() => handleLevelChange(u.id, 1, u.level)}
-                                                    className="w-6 h-6 rounded bg-dark-700 hover:bg-green-500/20 text-dark-400 hover:text-green-400 text-xs font-bold transition-colors">+</button>
+                                            <div className="flex items-center justify-center">
+                                                <input
+                                                    type="number"
+                                                    min="1"
+                                                    max="50"
+                                                    defaultValue={u.level}
+                                                    onBlur={(e) => {
+                                                        const val = parseInt(e.target.value);
+                                                        if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            const val = parseInt((e.target as HTMLInputElement).value);
+                                                            if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level);
+                                                            (e.target as HTMLInputElement).blur();
+                                                        }
+                                                    }}
+                                                    className="w-14 text-center text-sm py-1 rounded bg-dark-900 border border-dark-700 text-primary-400 font-bold focus:border-primary-500 focus:outline-none transition-colors"
+                                                />
                                             </div>
                                         </td>
                                         {/* XP */}

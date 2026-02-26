@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import CodeEditor from '../components/CodeEditor';
+import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -262,6 +263,8 @@ export default function LessonPage() {
         return () => window.removeEventListener('message', handler);
     }, []);
 
+    const { updateXP } = useAuthStore();
+
     // ── Fetch lesson ──
     useEffect(() => {
         const fetchLesson = async () => {
@@ -281,6 +284,8 @@ export default function LessonPage() {
                 setPreviewKey(k => k + 1);
                 setMobileTab('theory');
                 setRightTab('preview');
+                // Bug 12: Save last lesson URL
+                localStorage.setItem('lastLessonUrl', window.location.pathname);
             } catch {
                 toast.error('ლექციის ჩატვირთვა ვერ მოხერხდა.', { id: 'lesson-load-error' });
             } finally {
@@ -293,6 +298,11 @@ export default function LessonPage() {
     // ── Auto-preview debounce ──
     useEffect(() => {
         if (!lesson || !autoRun) return;
+
+        // Bug 4: Guard for "Unexpected end of input" on pure comments
+        const cleanCode = code.replace(/\/\/.*/g, '').replace(/<!--[\s\S]*?-->/g, '').replace(/\/\*[\s\S]*?\*\//g, '').trim();
+        if (!cleanCode) return;
+
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => {
             setConsoleLines([]);
@@ -325,11 +335,14 @@ export default function LessonPage() {
         if (!lesson) return;
         setIsSubmitting(true);
         try {
+            // Bug 10: State 'code' already tracks the editor's latest value via CodeEditor's onChange, ensuring accurate submission.
             const { data } = await api.post(`/lessons/${lesson.id}/submit`, { code });
             setResult(data);
             setRightTab('tests');
             if (data.passed) {
                 toast.success(`🎉 +${data.xpEarned} XP! ლექცია დასრულდა!`);
+                // Bug 5: Update XP in Navbar instantly
+                updateXP(data.xpEarned, data.newLevel);
             } else {
                 toast.error('სცადეთ ხელახლა. შეამოწმეთ კოდი.');
             }

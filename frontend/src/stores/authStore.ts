@@ -29,6 +29,7 @@ interface AuthState {
     logout: () => void;
     fetchProfile: () => Promise<void>;
     initialize: () => void;
+    updateXP: (earnedXP: number, newLevel?: number) => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -81,5 +82,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (token) {
             get().fetchProfile();
         }
+    },
+
+    updateXP: (earnedXP, newLevel) => {
+        const user = get().user;
+        if (!user) return;
+        set({
+            user: {
+                ...user,
+                xpPoints: (user.xpPoints || 0) + earnedXP,
+                level: newLevel ?? user.level,
+            },
+        });
     },
 }));

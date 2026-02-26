@@ -103,10 +103,9 @@ const submitCode = async (req, res, next) => {
                 if (test.contains) {
                     testPassed = codeWithoutComments.toLowerCase().includes(test.contains.toLowerCase());
                 } else if (test.testCode) {
-                    // თუ contains არ გვაქვს, ვცდილობთ ამოვხსნათ testCode-დან (მარტივი პატერნები)
-                    // Support both single and double quotes, and simple innerText checks
                     const queryMatch = test.testCode.match(/querySelector\(['"]([^'"]+)['"]\)/);
                     const innerTextMatch = test.testCode.match(/\.innerText\)\.toBe\(['"]([^'"]+)['"]\)/);
+                    const toContainMatch = test.testCode.match(/\.toContain\(['"]([^'"]+)['"]\)/);
 
                     if (queryMatch) {
                         const tag = queryMatch[1];
@@ -118,8 +117,11 @@ const submitCode = async (req, res, next) => {
                             expected = `<${tag}`;
                             testPassed = codeWithoutComments.toLowerCase().includes(expected.toLowerCase());
                         }
+                    } else if (toContainMatch) {
+                        // Bug 3: Basic string match eval for JS lessons using toContain
+                        const expectedText = toContainMatch[1];
+                        testPassed = codeWithoutComments.toLowerCase().includes(expectedText.toLowerCase());
                     } else if (test.testCode && (test.testCode.toLowerCase().includes('doctype') || testName.toLowerCase().includes('doctype'))) {
-                        // Special check for DOCTYPE which isn't a normal element
                         testPassed = code.toLowerCase().includes('<!doctype html>');
                     } else {
                         testPassed = false;

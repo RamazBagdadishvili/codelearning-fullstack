@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
@@ -7,8 +7,13 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-    const { login, isLoading } = useAuthStore();
+    const { login, isLoading, isAuthenticated } = useAuthStore();
     const navigate = useNavigate();
+
+    // Bug 9: Redirect if already logged in
+    useEffect(() => {
+        if (isAuthenticated) navigate('/courses', { replace: true });
+    }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

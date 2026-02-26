@@ -56,7 +56,7 @@ export default function HomePage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             {isAuthenticated ? (
-                                <Link to="/courses" className="btn-primary text-lg px-8 py-3">
+                                <Link to={localStorage.getItem('lastLessonUrl') || "/courses"} className="btn-primary text-lg px-8 py-3">
                                     გააგრძელე სწავლა →
                                 </Link>
                             ) : (
@@ -74,11 +74,11 @@ export default function HomePage() {
                         {/* სტატისტიკა */}
                         <div className="grid grid-cols-3 gap-8 mt-16 max-w-lg mx-auto">
                             <div className="text-center">
-                                <div className="text-3xl font-bold text-white">35+</div>
+                                <div className="text-3xl font-bold text-white">30+</div>
                                 <div className="text-dark-400 text-sm">კურსი</div>
                             </div>
                             <div className="text-center">
-                                <div className="text-3xl font-bold text-white">500+</div>
+                                <div className="text-3xl font-bold text-white">300+</div>
                                 <div className="text-dark-400 text-sm">ლექცია</div>
                             </div>
                             <div className="text-center">
