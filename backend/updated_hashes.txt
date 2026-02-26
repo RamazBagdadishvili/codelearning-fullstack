@@ -1,1 +1,0 @@
-{"adminHash":"$2a$12$80JRGX2E0M0x/Mfb13sdEOxTT4Y3bVZWBjo2s8.IpxQvfRycWjjtG","testHash":"$2a$12$eL2PWy6M1RhD6.6IoPOLM.pYm6t3Aoc0LzP0ORWz51qr97satdimC"}
