@@ -169,14 +169,14 @@ export default function CourseDetailPage() {
                     const isActive = !isLocked && !isCompleted;
 
                     const content = (
-                        <div className={`relative z-10 card flex items-center justify-between group p-4 sm:p-5 transition-all duration-300
+                        <div className={`relative z-10 card flex items-center justify-between group p-3 sm:p-5 transition-all duration-300
                             ${isLocked ? 'opacity-60 grayscale-[0.5] cursor-not-allowed border-dark-800 bg-dark-900/40' : 'hover:border-primary-500/40 hover:shadow-xl hover:shadow-primary-500/5 cursor-pointer hover:-translate-y-0.5'}
                             ${isCompleted ? 'border-emerald-500/20 bg-emerald-500/5' : ''}
                             ${isActive ? 'border-primary-500/30 bg-primary-500/5 ring-1 ring-primary-500/10' : ''}`}>
 
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                                 {/* Lesson Number/Status Icon */}
-                                <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-bold text-sm transition-all duration-300 shadow-sm
+                                <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center font-bold text-xs sm:text-sm transition-all duration-300 shadow-sm shrink-0
                                     ${isCompleted ? 'bg-emerald-500 text-white shadow-emerald-500/20' :
                                         isLocked ? 'bg-dark-800 text-dark-600 border border-dark-700' :
                                             'bg-primary-500 text-white shadow-lg shadow-primary-500/30'}`}>
@@ -184,16 +184,16 @@ export default function CourseDetailPage() {
 
                                     {/* Active Pulse Effect */}
                                     {isActive && (
-                                        <div className="absolute w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-primary-500 animate-ping opacity-20" />
+                                        <div className="absolute w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-primary-500 animate-ping opacity-20" />
                                     )}
                                 </div>
 
-                                <div className="flex-1 min-w-0">
-                                    <h3 className={`font-bold text-base sm:text-lg transition-colors truncate ${isLocked ? 'text-dark-400' : 'text-white group-hover:text-primary-400'}`}>
+                                <div className="min-w-0 pr-2">
+                                    <h3 className={`font-bold text-sm sm:text-lg transition-colors leading-tight ${isLocked ? 'text-dark-400' : 'text-white group-hover:text-primary-400'}`}>
                                         {lesson.title}
                                     </h3>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
-                                        <span className="flex items-center text-xs font-medium text-dark-400">
+                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                        <span className="flex items-center text-[10px] sm:text-xs font-medium text-dark-400">
                                             {lesson.content_type === 'theory' ? (
                                                 <><span className="mr-1">📖</span> თეორია</>
                                             ) : lesson.content_type === 'practice' ? (
@@ -202,14 +202,14 @@ export default function CourseDetailPage() {
                                                 <><span className="mr-1">📝</span> ქვიზი</>
                                             )}
                                         </span>
-                                        <span className="flex items-center text-xs font-semibold text-amber-400/80">
+                                        <span className="flex items-center text-[10px] sm:text-xs font-semibold text-amber-400/80">
                                             <span className="mr-1">⚡</span> {lesson.xp_reward} XP
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex items-center ml-4">
+                            <div className="flex items-center shrink-0">
                                 {isCompleted && (
                                     <span className="hidden sm:inline-block badge-success py-1 px-3 rounded-lg shadow-sm">
                                         დასრულებული

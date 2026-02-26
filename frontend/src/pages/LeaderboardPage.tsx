@@ -82,19 +82,19 @@ export default function LeaderboardPage() {
                         {(leaderboard || []).map((u: any) => (
                             <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/50 transition-colors
                 ${u.id === user?.id ? 'bg-primary-500/5 border-primary-500/20' : ''}`}>
-                                <td className="p-4 font-bold text-lg">{getRankBadge(parseInt(u.rank))}</td>
-                                <td className="p-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold">
+                                <td className="p-2 sm:p-4 font-bold text-base sm:text-lg text-center sm:text-left">{getRankBadge(parseInt(u.rank))}</td>
+                                <td className="p-2 sm:p-4">
+                                    <div className="flex items-center space-x-2 sm:space-x-3">
+                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold text-xs sm:text-base shrink-0">
                                             {u.username?.charAt(0).toUpperCase()}
                                         </div>
-                                        <div>
-                                            <p className="text-white font-medium">{u.full_name || u.username}</p>
-                                            <p className="text-dark-500 text-sm">@{u.username}</p>
+                                        <div className="min-w-0">
+                                            <p className="text-white font-medium text-sm sm:text-base truncate">{u.full_name || u.username}</p>
+                                            <p className="text-dark-500 text-xs truncate">@{u.username}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td className="p-4 text-right text-amber-400 font-bold">⚡ {u.xp_points}</td>
+                                <td className="p-2 sm:p-4 text-right text-amber-400 font-bold text-sm sm:text-base whitespace-nowrap">⚡ {u.xp_points}</td>
                                 <td className="p-4 text-right text-primary-400 font-medium hidden sm:table-cell">Lv.{u.level}</td>
                                 <td className="p-4 text-right text-dark-300 hidden md:table-cell">{u.completed_lessons}</td>
                                 <td className="p-4 text-right text-orange-400 hidden md:table-cell">🔥 {u.streak_days}</td>

@@ -147,8 +147,9 @@ export default function HomePage() {
                             <p className="text-dark-300 mb-8 max-w-lg mx-auto">
                                 შეუერთდით CodeLearning-ს და დაიწყეთ Front-End პროგრამირების სწავლა ქართულად, სრულიად უფასოდ.
                             </p>
-                            <Link to="/register" className="btn-primary text-lg px-10 py-3">
-                                უფასო რეგისტრაცია →
+                            <Link to="/register" className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                                <span>უფასო რეგისტრაცია</span>
+                                <span className="text-xl">→</span>
                             </Link>
                         </div>
                     </div>
