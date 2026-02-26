@@ -276,6 +276,9 @@ const generateTestCases = async (req, res, next) => {
 
         res.json({ testCases: tests });
     } catch (error) {
+        if (error.status === 401 || error.statusCode === 401 || error.message?.includes('API_KEY_INVALID')) {
+            return res.status(500).json({ error: 'არასწორი AI API Key. გადაამოწმეთ სერვერის კონფიგურაცია.' });
+        }
         next(error);
     }
 };
@@ -319,6 +322,9 @@ const generateFullLesson = async (req, res, next) => {
             throw new Error('AI-მ ვერ დააგენერირა ვალიდური JSON პასუხი.');
         }
     } catch (error) {
+        if (error.status === 401 || error.statusCode === 401 || error.message?.includes('API_KEY_INVALID')) {
+            return res.status(500).json({ error: 'არასწორი AI API Key. გადაამოწმეთ სერვერის კონფიგურაცია.' });
+        }
         next(error);
     }
 };
@@ -352,7 +358,7 @@ const generateLessonContent = async (req, res, next) => {
         console.error('Gemini API Connection Error:', error);
         // თუ სპეციფიკური შეცდომაა Google-ის მხრიდან
         if (error.message?.includes('API_KEY_INVALID')) {
-            return res.status(401).json({ error: 'არასწორი API Key. გადაამოწმეთ .env ფაილი.' });
+            return res.status(500).json({ error: 'არასწორი API Key. გადაამოწმეთ .env ფაილი.' });
         }
         if (error.message?.includes('quota')) {
             return res.status(429).json({ error: 'ლიმიტი ამოიწურა ან საჭიროა ბალანსის შევსება (10$).' });
@@ -395,6 +401,9 @@ const generateCodeChallenge = async (req, res, next) => {
             throw new Error('AI-მ ვერ დააგენერირა ვალიდური JSON პასუხი.');
         }
     } catch (error) {
+        if (error.status === 401 || error.statusCode === 401 || error.message?.includes('API_KEY_INVALID')) {
+            return res.status(500).json({ error: 'არასწორი AI API Key. გადაამოწმეთ სერვერის კონფიგურაცია.' });
+        }
         next(error);
     }
 };

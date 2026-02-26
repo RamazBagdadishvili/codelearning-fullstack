@@ -1288,6 +1288,7 @@ export default function AdminPage() {
             }
             {/* Preview Modal */}
             <LessonPreviewModal />
+            <ConfirmDialog />
         </div>
     );
 }
