@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { HiEye, HiEyeOff } from 'react-icons/hi';
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { token } = useParams();
     const navigate = useNavigate();
@@ -42,14 +45,24 @@ export default function ResetPasswordPage() {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">ახალი პაროლი</label>
-                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                                className="input-field" placeholder="••••••••" required minLength={6} />
+                            <div className="relative">
+                                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                                    className="input-field pr-10" placeholder="••••••••" required minLength={6} />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-dark-400 hover:text-white" aria-label={showPassword ? "პაროლის დამალვა" : "პაროლის გამოჩენა"}>
+                                    {showPassword ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">გაიმეორეთ პაროლი</label>
-                            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="input-field" placeholder="••••••••" required minLength={6} />
+                            <div className="relative">
+                                <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                                    className="input-field pr-10" placeholder="••••••••" required minLength={6} />
+                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-dark-400 hover:text-white" aria-label={showConfirmPassword ? "პაროლის დამალვა" : "პაროლის გამოჩენა"}>
+                                    {showConfirmPassword ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
 
                         <button type="submit" disabled={isLoading} className="btn-primary w-full py-3">

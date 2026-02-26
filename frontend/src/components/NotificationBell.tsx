@@ -45,6 +45,7 @@ export default function NotificationBell() {
         <div className="relative" ref={dropdownRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
+                aria-label="შეტყობინებები"
                 className="relative p-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 transition-all"
             >
                 <HiBell className="w-6 h-6" />

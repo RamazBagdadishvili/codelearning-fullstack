@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { useAuthStore } from '../stores/authStore';
 import { formatXP } from '../utils/formatters';
-import { HiFire, HiCalendar, HiGlobe } from 'react-icons/hi';
+import { HiFire, HiCalendar, HiGlobe, HiLightningBolt } from 'react-icons/hi';
 
 export default function LeaderboardPage() {
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -71,21 +71,47 @@ export default function LeaderboardPage() {
 
             {/* ტოპ 3 */}
             {leaderboard.length >= 3 && (
-                <div className="flex justify-center items-end gap-2 sm:gap-4 mb-8 sm:mb-12 px-2">
+                <div className="flex justify-center items-end gap-2 sm:gap-6 mb-12 sm:mb-16 px-4">
                     {[leaderboard[1], leaderboard[0], leaderboard[2]].map((u, i) => {
                         const rank = i === 0 ? 2 : i === 1 ? 1 : 3;
-                        const heights = ['h-24 sm:h-32', 'h-32 sm:h-40', 'h-20 sm:h-28'];
+                        const heights = ['h-28 sm:h-36', 'h-40 sm:h-52', 'h-24 sm:h-32'];
+                        const isFirst = rank === 1;
+
                         return (
-                            <div key={u.id} className="flex flex-col items-center flex-1 max-w-[100px] sm:max-w-none">
-                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-lg sm:text-xl font-bold text-white mb-2 shadow-lg shadow-primary-500/20">
-                                    {u.username?.charAt(0).toUpperCase()}
+                            <div key={u.id} className="flex flex-col items-center flex-1 max-w-[120px] sm:max-w-[160px] relative group">
+                                {isFirst && timeframe === 'week' && (
+                                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap px-3 py-1 bg-amber-500 text-dark-950 text-[10px] font-black rounded-full shadow-lg shadow-amber-500/30 animate-bounce flex items-center gap-1">
+                                        👑 WEEKLY CHAMPION
+                                    </div>
+                                )}
+
+                                <div className={`relative mb-4 ${isFirst ? 'scale-110 sm:scale-125' : ''}`}>
+                                    <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-accent-600 flex items-center justify-center text-xl sm:text-2xl font-black text-white shadow-2xl transition-transform group-hover:rotate-6
+                                        ${isFirst ? 'ring-4 ring-amber-400 ring-offset-4 ring-offset-dark-950' : ''}`}>
+                                        {u.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div className={`absolute -bottom-2 -right-2 w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm sm:text-lg shadow-lg
+                                        ${isFirst ? 'bg-amber-400' : rank === 2 ? 'bg-slate-300' : 'bg-orange-500'}`}>
+                                        {getRankBadge(rank)}
+                                    </div>
                                 </div>
-                                <p className="text-white font-semibold text-[10px] sm:text-sm mb-0.5 truncate w-full text-center">{u.username}</p>
-                                <p className="text-amber-400 text-[10px] sm:text-sm font-bold" title={`${u.xp_points} XP`}>⚡{formatXP(u.xp_points)}</p>
-                                <div className={`${heights[i]} w-full mt-3 rounded-t-xl bg-gradient-to-t 
-                  ${rank === 1 ? 'from-amber-600 to-amber-400' : rank === 2 ? 'from-slate-500 to-slate-300' : 'from-orange-700 to-orange-500'}
-                  flex items-start justify-center pt-3`}>
-                                    <span className="text-xl sm:text-3xl">{getRankBadge(rank)}</span>
+
+                                <div className="text-center mb-3">
+                                    <p className="text-white font-black text-[10px] sm:text-base truncate w-full max-w-[80px] sm:max-w-none">
+                                        {u.username}
+                                    </p>
+                                    <p className="text-amber-400 text-[10px] sm:text-sm font-black flex items-center justify-center gap-1">
+                                        <HiLightningBolt className="w-3 h-3" /> {formatXP(u.xp_points)}
+                                    </p>
+                                </div>
+
+                                <div className={`${heights[i]} w-full rounded-t-2xl bg-gradient-to-t relative overflow-hidden transition-all group-hover:brightness-110
+                                    ${rank === 1 ? 'from-amber-600/20 via-amber-500/40 to-amber-400/60 border-x border-t border-amber-400/30 shadow-[0_-10px_40px_-10px_rgba(251,191,36,0.3)]' :
+                                        rank === 2 ? 'from-slate-600/20 via-slate-500/40 to-slate-300/60 border-x border-t border-slate-300/30' :
+                                            'from-orange-800/20 via-orange-700/40 to-orange-500/60 border-x border-t border-orange-500/30'}`}>
+                                    {isFirst && (
+                                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/shattered.png')] opacity-10" />
+                                    )}
                                 </div>
                             </div>
                         );

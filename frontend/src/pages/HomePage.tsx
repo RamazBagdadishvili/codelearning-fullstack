@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { HiAcademicCap, HiCode, HiChartBar, HiLightningBolt, HiStar, HiUserGroup } from 'react-icons/hi';
+import DailyChallengeCard from '../components/DailyChallengeCard';
 
 const LEVELS = [
     { num: 1, title: 'HTML & CSS საფუძვლები', icon: '🌐', courses: 4, color: 'from-orange-500 to-red-500' },
@@ -89,6 +90,15 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+
+            {/* Daily Challenge Section */}
+            {isAuthenticated && (
+                <section className="px-4 -mt-12 sm:-mt-16 relative z-10">
+                    <div className="max-w-4xl mx-auto">
+                        <DailyChallengeCard />
+                    </div>
+                </section>
+            )}
 
             {/* ფუნქციები */}
             <section className="py-20 bg-dark-900/50">

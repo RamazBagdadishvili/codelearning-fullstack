@@ -201,13 +201,21 @@ const submitCode = async (req, res, next) => {
                     [req.user.id, lessonId, lesson.course_id, score]
                 );
 
-                // XP დამატება
-                await query(
-                    'UPDATE users SET xp_points = xp_points + $1 WHERE id = $2',
-                    [lesson.xp_reward, req.user.id]
+                // XP დამატება (შემოწმება არის თუ არა Daily Challenge)
+                const dailyChallenge = await query(
+                    'SELECT xp_multiplier FROM daily_challenges WHERE lesson_id = $1 AND challenge_date = CURRENT_DATE',
+                    [lessonId]
                 );
 
-                // Level-ის გადაანგარიშება (ყოველ 100 XP-ზე level იზრდება, მაქსიმუმ 200)
+                const multiplier = dailyChallenge.rows.length > 0 ? dailyChallenge.rows[0].xp_multiplier : 1;
+                const finalXp = lesson.xp_reward * multiplier;
+
+                await query(
+                    'UPDATE users SET xp_points = xp_points + $1 WHERE id = $2',
+                    [finalXp, req.user.id]
+                );
+
+                // Level-ის გადაანგარიშება
                 await query(
                     'UPDATE users SET level = LEAST(200, GREATEST(1, FLOOR(xp_points / 100) + 1)) WHERE id = $1',
                     [req.user.id]

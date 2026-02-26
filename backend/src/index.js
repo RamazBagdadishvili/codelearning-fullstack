@@ -29,6 +29,7 @@ const achievementRoutes = require('./routes/achievements');
 const leaderboardRoutes = require('./routes/leaderboard');
 const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
+const commentRoutes = require('./routes/comments');
 
 
 // Error Handler მიდლვეარი
@@ -83,6 +84,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/comments', commentRoutes);
 
 
 // მთავარი endpoint

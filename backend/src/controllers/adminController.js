@@ -669,31 +669,59 @@ const updateUserXp = async (req, res, next) => {
     }
 };
 
+// Bulk User Actions
+// POST /api/admin/users/bulk
+const bulkUserAction = async (req, res, next) => {
+    try {
+        const { userIds, action, value } = req.body;
+        if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({ error: 'მომხმარებლების მასივი სავალდებულოა.' });
+        }
+
+        if (action === 'delete') {
+            await query('DELETE FROM users WHERE id = ANY($1)', [userIds]);
+        } else if (action === 'toggle-active') {
+            await query('UPDATE users SET is_active = NOT is_active WHERE id = ANY($1)', [userIds]);
+        } else if (action === 'role' && value) {
+            await query('UPDATE users SET role = $1 WHERE id = ANY($2)', [value, userIds]);
+        } else {
+            return res.status(400).json({ error: 'არასწორი მოქმედება.' });
+        }
+
+        res.json({ message: `${userIds.length} მომხმარებელზე მოქმედება წარმატებით შესრულდა.` });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // ========================================
 // ანალიტიკა (Analytics / Charts Data)
 // ========================================
 // GET /api/admin/analytics
 const getAnalytics = async (req, res, next) => {
     try {
-        // ბოლო 30 დღის რეგისტრაციები (დღეების მიხედვით)
+        const days = parseInt(req.query.days) || 30;
+        const interval = `${days} days`;
+
+        // რეგისტრაციები მოცემულ პერიოდში
         const dailyRegistrations = await query(`
             SELECT DATE(created_at) as date, COUNT(*) as count
             FROM users
-            WHERE created_at > NOW() - INTERVAL '30 days'
+            WHERE created_at > NOW() - CAST($1 AS INTERVAL)
             GROUP BY DATE(created_at)
             ORDER BY date ASC
-        `);
+        `, [interval]);
 
-        // ბოლო 30 დღის სუბმიშენები
+        // სუბმიშენები მოცემულ პერიოდში
         const dailySubmissions = await query(`
             SELECT DATE(created_at) as date, 
                    COUNT(*) as total,
                    COUNT(*) FILTER (WHERE passed = true) as passed
             FROM code_submissions
-            WHERE created_at > NOW() - INTERVAL '30 days'
+            WHERE created_at > NOW() - CAST($1 AS INTERVAL)
             GROUP BY DATE(created_at)
             ORDER BY date ASC
-        `);
+        `, [interval]);
 
         // კურსების პოპულარობა (ჩარიცხვების მიხედვით)
         const coursePopularity = await query(`

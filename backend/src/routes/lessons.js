@@ -4,7 +4,11 @@
 
 const router = require('express').Router();
 const { getLesson, submitCode, askAI, explainAI } = require('../controllers/lessonController');
+const { getDailyChallenge } = require('../controllers/dailyChallengeController');
 const auth = require('../middleware/auth');
+
+// დღევანდელი დავალება
+router.get('/daily', getDailyChallenge);
 
 // ლექციის მიღება
 router.get('/:courseSlug/:lessonSlug', (req, res, next) => {

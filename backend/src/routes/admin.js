@@ -3,7 +3,7 @@ const router = require('express').Router();
 const {
     getStats, createCourse, updateCourse, createLesson, updateLesson,
     deleteCourse, getUsers, getCourses, deleteLesson,
-    updateUserRole, toggleUserActive, deleteUser, updateUserLevel, updateUserXp,
+    updateUserRole, toggleUserActive, deleteUser, updateUserLevel, updateUserXp, bulkUserAction,
     getAnalytics, broadcastNotification, sendNotification,
     getAchievements, createAchievement, updateAchievement, deleteAchievement,
     getSubmissions, clearAllSubmissions, reorderLessons,
@@ -27,6 +27,7 @@ router.get('/analytics', admin, getAnalytics);
 
 // მომხმარებლების მართვა
 router.get('/users', admin, getUsers);
+router.post('/users/bulk', admin, bulkUserAction);
 router.put('/users/:id/role', admin, updateUserRole);
 router.put('/users/:id/toggle-active', admin, toggleUserActive);
 router.put('/users/:id/level', admin, updateUserLevel);

@@ -8,7 +8,7 @@ const isRemoteDB = process.env.DATABASE_URL && !process.env.DATABASE_URL.include
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: (process.env.NODE_ENV === 'production' && isRemoteDB) ? { rejectUnauthorized: false } : false,
+    ssl: isRemoteDB ? { rejectUnauthorized: false } : false,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

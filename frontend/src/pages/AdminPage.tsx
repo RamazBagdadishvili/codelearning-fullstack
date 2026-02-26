@@ -54,6 +54,7 @@ export default function AdminPage() {
         challenge: false,
         tests: false
     });
+    const [analyticsDays, setAnalyticsDays] = useState(30);
 
     useEffect(() => {
         if (selectedCourse) {
@@ -97,7 +98,15 @@ export default function AdminPage() {
             const lessonOrders = courseLessons.map((l, idx) => ({ id: l.id, sortOrder: idx + 1 }));
             await api.put('/admin/lessons/reorder', { lessonOrders });
             toast.success('ლექციების რიგითობა შენახულია!');
-            fetchData();
+
+            // Update local courses state to reflect new orders
+            setCourses(prev => prev.map(c => {
+                if (c.id === selectedCourse.id) {
+                    return { ...c, lessons: courseLessons };
+                }
+                return c;
+            }));
+
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'ვერ შეინახა რიგითობა');
         } finally {
@@ -111,7 +120,7 @@ export default function AdminPage() {
             if (user?.role === 'admin') {
                 const [statsRes, analyticsRes, usersRes, coursesRes] = await Promise.all([
                     api.get('/admin/stats'),
-                    api.get('/admin/analytics'),
+                    api.get(`/admin/analytics?days=${analyticsDays}`),
                     api.get('/admin/users'),
                     api.get('/admin/courses')
                 ]);
@@ -134,7 +143,7 @@ export default function AdminPage() {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [analyticsDays]);
 
     // Course Actions
     const handleCreateCourse = async (e: React.FormEvent) => {
@@ -655,6 +664,27 @@ export default function AdminPage() {
             {/* დეშბორდი */}
             {activeTab === 'dashboard' && stats && (
                 <div className="space-y-8">
+                    {/* პერიოდის შერჩევა */}
+                    <div className="flex justify-between items-center bg-dark-800 p-4 rounded-xl border border-dark-700">
+                        <h2 className="text-white font-bold">📊 აქტივობის ანალიტიკა</h2>
+                        <div className="flex bg-dark-900 p-1 rounded-lg border border-dark-700">
+                            {[
+                                { label: '7დ', value: 7 },
+                                { label: '30დ', value: 30 },
+                                { label: '90დ', value: 90 },
+                                { label: 'ყველა', value: 3650 }
+                            ].map(p => (
+                                <button
+                                    key={p.value}
+                                    onClick={() => setAnalyticsDays(p.value)}
+                                    className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${analyticsDays === p.value ? 'bg-primary-600 text-white shadow-lg' : 'text-dark-400 hover:text-white'}`}
+                                >
+                                    {p.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* AI სტატუსის შემოწმება */}
                     <div className="card border-primary-500/20 bg-primary-500/5 hover:border-primary-500/40 transition-all">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -1304,6 +1334,8 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
     const [confirmAction, setConfirmAction] = useState<{ type: string; user: any } | null>(null);
     const [managingUser, setManagingUser] = useState<any | null>(null);
     const [deleteConfirmName, setDeleteConfirmName] = useState('');
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+    const [isBulkLoading, setIsBulkLoading] = useState(false);
 
     const filteredUsers = (users || []).filter(u => {
         const matchRole = roleFilter === 'all' || u.role === roleFilter;
@@ -1366,6 +1398,37 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
         }
     };
 
+    const handleBulkAction = async (action: string, value?: string) => {
+        if (selectedUserIds.length === 0) return;
+        if (action === 'delete' && !(await confirm(`ნამდვილად გსურთ ${selectedUserIds.length} მომხმარებლის სამუდამოდ წაშლა?`))) return;
+
+        setIsBulkLoading(true);
+        try {
+            const { data } = await api.post('/admin/users/bulk', { userIds: selectedUserIds, action, value });
+            toast.success(data.message);
+            setSelectedUserIds([]);
+            onRefresh();
+        } catch (err: any) {
+            toast.error(err.response?.data?.error || 'მოქმედება ვერ შესრულდა.');
+        } finally {
+            setIsBulkLoading(false);
+        }
+    };
+
+    const toggleSelectUser = (userId: string) => {
+        setSelectedUserIds(prev =>
+            prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedUserIds.length === filteredUsers.length) {
+            setSelectedUserIds([]);
+        } else {
+            setSelectedUserIds(filteredUsers.map(u => u.id));
+        }
+    };
+
     const ROLE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
         admin: { label: '👑 ადმინი', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30' },
         instructor: { label: '🎓 ინსტრუქტორი', color: 'text-purple-400', bg: 'bg-purple-500/10 border-purple-500/30' },
@@ -1401,12 +1464,48 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                 </div>
             </div>
 
+            {/* Bulk Actions Bar */}
+            {selectedUserIds.length > 0 && (
+                <div className="flex items-center justify-between bg-primary-600/10 border border-primary-500/30 p-3 rounded-xl animate-fade-in shadow-lg">
+                    <div className="flex items-center space-x-4">
+                        <span className="text-primary-400 font-bold text-sm">✓ მონიშნულია {selectedUserIds.length}</span>
+                        <div className="h-4 w-px bg-dark-600" />
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => handleBulkAction('toggle-active')} disabled={isBulkLoading}
+                                className="px-3 py-1.5 bg-dark-800 hover:bg-dark-700 text-white text-xs rounded-lg transition-colors border border-dark-600">
+                                სტატუსის შეცვლა
+                            </button>
+                            <div className="relative group">
+                                <button className="px-3 py-1.5 bg-dark-800 hover:bg-dark-700 text-white text-xs rounded-lg transition-colors border border-dark-600">
+                                    როლის შეცვლა ▼
+                                </button>
+                                <div className="absolute top-full left-0 mt-2 w-40 bg-dark-800 border border-dark-700 rounded-xl shadow-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all z-20 overflow-hidden">
+                                    <button onClick={() => handleBulkAction('role', 'student')} className="w-full text-left px-4 py-2 text-xs hover:bg-dark-700 text-dark-300 hover:text-white">📚 სტუდენტი</button>
+                                    <button onClick={() => handleBulkAction('role', 'instructor')} className="w-full text-left px-4 py-2 text-xs hover:bg-dark-700 text-dark-300 hover:text-white">🎓 ინსტრუქტორი</button>
+                                    <button onClick={() => handleBulkAction('role', 'admin')} className="w-full text-left px-4 py-2 text-xs hover:bg-dark-700 text-dark-300 hover:text-white">👑 ადმინი</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onClick={() => handleBulkAction('delete')} disabled={isBulkLoading}
+                        className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white text-xs rounded-lg transition-colors border border-red-500/30 font-bold">
+                        🗑️ მონიშნულების წაშლა
+                    </button>
+                </div>
+            )}
+
             {/* მომხმარებლების ცხრილი */}
             <div className="card overflow-hidden border border-dark-700">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b border-dark-700 bg-dark-800/50">
+                                <th className="p-4 text-left w-10">
+                                    <input type="checkbox"
+                                        checked={selectedUserIds.length > 0 && selectedUserIds.length === filteredUsers.length}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 rounded border-dark-600 bg-dark-900 text-primary-600 focus:ring-primary-500" />
+                                </th>
                                 <th className="text-left p-4 text-dark-400 text-xs font-semibold uppercase tracking-wider">მომხმარებელი</th>
                                 <th className="text-left p-4 text-dark-400 text-xs font-semibold uppercase tracking-wider hidden md:table-cell">ელ-ფოსტა</th>
                                 <th className="text-center p-4 text-dark-400 text-xs font-semibold uppercase tracking-wider">როლი</th>
@@ -1420,7 +1519,13 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                             {filteredUsers.map(u => {
                                 const rc = ROLE_CONFIG[u.role] || ROLE_CONFIG.student;
                                 return (
-                                    <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors ${u.role === 'admin' ? 'bg-amber-500/5' : ''} ${!u.is_active ? 'opacity-50' : ''}`}>
+                                    <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors ${u.role === 'admin' ? 'bg-amber-500/5' : ''} ${!u.is_active ? 'opacity-50' : ''} ${selectedUserIds.includes(u.id) ? 'bg-primary-600/5' : ''}`}>
+                                        <td className="p-4">
+                                            <input type="checkbox"
+                                                checked={selectedUserIds.includes(u.id)}
+                                                onChange={() => toggleSelectUser(u.id)}
+                                                className="w-4 h-4 rounded border-dark-600 bg-dark-900 text-primary-600 focus:ring-primary-500" />
+                                        </td>
                                         {/* Desktop-only columns */}
                                         <td className="p-4 hidden sm:table-cell">
                                             <div className="flex items-center space-x-3">
