@@ -44,7 +44,7 @@ export default function HomePage() {
 
                         <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold mb-6">
                             <span className="text-white">ისწავლე </span>
-                            <span className="gradient-text">Front-End</span>
+                            <span className="gradient-text" style={{ whiteSpace: 'nowrap' }}>Front-End</span>
                             <br />
                             <span className="text-white">ქართულად</span>
                         </h1>

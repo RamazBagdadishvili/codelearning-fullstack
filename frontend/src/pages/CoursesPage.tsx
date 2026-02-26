@@ -134,22 +134,28 @@ export default function CoursesPage() {
 
 function CourseCard({ course }: { course: any }) {
     const diff = DIFFICULTY_MAP[course.difficulty] || DIFFICULTY_MAP.beginner;
+    const lessonCount = course.total_lessons || course.lesson_count || 0;
 
     return (
-        <Link to={`/courses/${course.slug}`} className="card-hover group">
+        <Link to={`/courses/${course.slug}`} className="card-hover group relative">
+            {lessonCount === 0 && (
+                <span className="absolute top-3 right-3 px-2.5 py-1 bg-dark-700 text-dark-300 text-xs font-bold rounded-lg border border-dark-600 z-10">
+                    🕐 მალე
+                </span>
+            )}
             <div className="flex items-start justify-between mb-4">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
                     style={{ backgroundColor: `${course.color}20` }}>
                     {course.icon}
                 </div>
-                <span className={diff.color}>{diff.label}</span>
+                {lessonCount > 0 && <span className={diff.color}>{diff.label}</span>}
             </div>
             <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary-400 transition-colors">
                 {course.title}
             </h3>
             <p className="text-dark-400 text-sm mb-4 line-clamp-2">{course.short_description}</p>
             <div className="flex items-center justify-between text-sm text-dark-500">
-                <span>📚 {course.total_lessons || course.lesson_count || 0} ლექცია</span>
+                <span>📚 {lessonCount} ლექცია</span>
                 <span>⏱️ {course.estimated_hours || '?'}სთ</span>
             </div>
         </Link>

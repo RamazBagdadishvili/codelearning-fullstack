@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import api from '../api/axios';
-import { HiAcademicCap, HiCode, HiFire, HiStar, HiTrendingUp } from 'react-icons/hi';
+import { HiAcademicCap, HiCode, HiFire, HiStar, HiTrendingUp, HiPencil } from 'react-icons/hi';
 import { useConfirm } from '../hooks/useConfirm';
+import toast from 'react-hot-toast';
 
 export default function ProfilePage() {
     const { user, fetchProfile } = useAuthStore();
     const [progress, setProgress] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editForm, setEditForm] = useState({ fullName: '', bio: '' });
     const { confirm, ConfirmDialog } = useConfirm();
 
     useEffect(() => {
@@ -21,6 +25,31 @@ export default function ProfilePage() {
         };
         load();
     }, []);
+
+    const startEditing = () => {
+        setEditForm({
+            fullName: user?.fullName || user?.username || '',
+            bio: (user as any)?.bio || ''
+        });
+        setIsEditing(true);
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await api.put('/auth/profile', {
+                fullName: editForm.fullName,
+                bio: editForm.bio
+            });
+            await fetchProfile();
+            setIsEditing(false);
+            toast.success('პროფილი წარმატებით განახლდა!');
+        } catch (err: any) {
+            toast.error(err.response?.data?.error || 'პროფილის განახლება ვერ მოხერხდა.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -39,14 +68,55 @@ export default function ProfilePage() {
                         {user?.username?.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-center md:text-left flex-1">
-                        <h1 className="text-2xl font-bold text-white">{user?.fullName || user?.username}</h1>
-                        <p className="text-dark-400">@{user?.username}</p>
-                        <p className="text-dark-500 text-sm mt-1">{user?.email}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                            {user?.role === 'admin' && <span className="badge-warning">👑 ადმინისტრატორი</span>}
-                            {user?.role === 'instructor' && <span className="badge-primary">👨‍🏫 ინსტრუქტორი</span>}
-                            {user?.role === 'student' && <span className="badge bg-dark-800 text-dark-300">🎓 სტუდენტი</span>}
-                        </div>
+                        {isEditing ? (
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-dark-400 text-xs font-medium mb-1">სრული სახელი</label>
+                                    <input
+                                        type="text" value={editForm.fullName}
+                                        onChange={e => setEditForm({ ...editForm, fullName: e.target.value })}
+                                        className="input-field w-full max-w-xs" placeholder="სრული სახელი"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-dark-400 text-xs font-medium mb-1">ბიო (მაქს. 160 სიმბოლო)</label>
+                                    <textarea
+                                        value={editForm.bio}
+                                        onChange={e => setEditForm({ ...editForm, bio: e.target.value.slice(0, 160) })}
+                                        className="input-field w-full max-w-md resize-none" rows={2}
+                                        placeholder="მოკლედ შენს შესახებ..."
+                                        maxLength={160}
+                                    />
+                                    <span className="text-dark-600 text-xs">{editForm.bio.length}/160</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={handleSave} disabled={isSaving}
+                                        className="px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-sm font-bold transition-all disabled:opacity-50">
+                                        {isSaving ? 'ინახება...' : 'შენახვა'}
+                                    </button>
+                                    <button onClick={() => setIsEditing(false)}
+                                        className="px-4 py-2 bg-dark-700 hover:bg-dark-600 text-dark-300 rounded-xl text-sm font-medium transition-all">
+                                        გაუქმება
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <h1 className="text-2xl font-bold text-white">{user?.fullName || user?.username}</h1>
+                                <p className="text-dark-400">@{user?.username}</p>
+                                {(user as any)?.bio && <p className="text-dark-300 text-sm mt-1">{(user as any).bio}</p>}
+                                <p className="text-dark-500 text-sm mt-1">{user?.email}</p>
+                                <div className="mt-3 flex flex-wrap gap-2 items-center">
+                                    {user?.role === 'admin' && <span className="badge-warning">👑 ადმინისტრატორი</span>}
+                                    {user?.role === 'instructor' && <span className="badge-primary">👨‍🏫 ინსტრუქტორი</span>}
+                                    {user?.role === 'student' && <span className="badge bg-dark-800 text-dark-300">🎓 სტუდენტი</span>}
+                                    <button onClick={startEditing}
+                                        className="ml-2 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 text-primary-400 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5">
+                                        <HiPencil className="w-3.5 h-3.5" /> პროფილის რედაქტირება
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

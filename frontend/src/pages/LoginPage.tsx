@@ -6,15 +6,39 @@ import toast from 'react-hot-toast';
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
     const { login, isLoading } = useAuthStore();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const newErrors: { email?: string; password?: string } = {};
+
+        if (!email.trim()) {
+            newErrors.email = 'გთხოვ შეიყვანო ელ-ფოსტა.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newErrors.email = 'გთხოვ შეიყვანო სწორი ელ-ფოსტის მისამართი.';
+        }
+        if (!password) {
+            newErrors.password = 'გთხოვ შეიყვანო პაროლი.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            return;
+        }
+        setErrors({});
+
         try {
             await login(email, password);
             toast.success('წარმატებით შეხვედით!');
-            navigate('/courses');
+            // Bug 9: Role-based redirect
+            const user = useAuthStore.getState().user;
+            if (user?.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/courses');
+            }
         } catch (err: any) {
             toast.error(err.message);
         }
@@ -30,11 +54,13 @@ export default function LoginPage() {
                 </div>
 
                 <div className="card p-8">
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} noValidate className="space-y-5">
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">ელ-ფოსტა</label>
-                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                                className="input-field" placeholder="your@email.com" required />
+                            <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: undefined })); }}
+                                autoComplete="username"
+                                className={`input-field ${errors.email ? 'border-red-500' : ''}`} placeholder="your@email.com" />
+                            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                         </div>
 
                         <div>
@@ -44,8 +70,10 @@ export default function LoginPage() {
                                     დაგავიწყდათ პაროლი?
                                 </Link>
                             </div>
-                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                                className="input-field" placeholder="••••••••" required />
+                            <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
+                                autoComplete="current-password"
+                                className={`input-field ${errors.password ? 'border-red-500' : ''}`} placeholder="••••••••" />
+                            {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
                         </div>
 
                         <button type="submit" disabled={isLoading} className="btn-primary w-full py-3">

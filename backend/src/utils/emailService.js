@@ -1,6 +1,12 @@
 const nodemailer = require('nodemailer');
 
 const sendEmail = async (options) => {
+    // შემოწმება: კონფიგურირებულია თუ არა ელ-ფოსტა
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.EMAIL_PASS === 'your_gmail_app_password') {
+        console.warn('⚠️ Email credentials not configured. Skipping email send.');
+        throw new Error('ელ-ფოსტის სერვისი არ არის კონფიგურირებული. გთხოვთ დაუკავშირდით ადმინისტრატორს.');
+    }
+
     // Gmail-ის კონფიგურაცია
     // მნიშვნელოვანია: Gmail-ისთვის გჭირდებათ "App Password"
     const transporter = nodemailer.createTransport({

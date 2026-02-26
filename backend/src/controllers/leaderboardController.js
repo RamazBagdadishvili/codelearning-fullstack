@@ -16,7 +16,7 @@ const getLeaderboard = async (req, res, next) => {
               (SELECT COUNT(*) FROM user_achievements WHERE user_id = u.id) as achievements_count,
               ROW_NUMBER() OVER (ORDER BY u.xp_points DESC) as rank
        FROM users u
-       WHERE u.is_active = true AND u.role = 'student'
+       WHERE u.is_active = true
        ORDER BY u.xp_points DESC
        LIMIT $1 OFFSET $2`,
             [parseInt(limit), parseInt(offset)]
@@ -28,7 +28,7 @@ const getLeaderboard = async (req, res, next) => {
             const rankResult = await query(
                 `SELECT rank FROM (
            SELECT id, ROW_NUMBER() OVER (ORDER BY xp_points DESC) as rank
-           FROM users WHERE is_active = true AND role = 'student'
+           FROM users WHERE is_active = true
          ) ranked WHERE id = $1`,
                 [req.user.id]
             );

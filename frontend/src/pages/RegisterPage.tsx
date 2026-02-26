@@ -8,19 +8,41 @@ export default function RegisterPage() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string; confirmPassword?: string }>({});
     const { register, isLoading } = useAuthStore();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password !== confirmPassword) {
-            toast.error('პაროლები არ ემთხვევა!');
+        const newErrors: typeof errors = {};
+
+        if (!username.trim()) {
+            newErrors.username = 'გთხოვ შეიყვანო მომხმარებლის სახელი.';
+        } else if (username.length < 3) {
+            newErrors.username = 'მომხმარებლის სახელი უნდა შეიცავდეს მინიმუმ 3 სიმბოლოს.';
+        }
+        if (!email.trim()) {
+            newErrors.email = 'გთხოვ შეიყვანო ელ-ფოსტა.';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            newErrors.email = 'გთხოვ შეიყვანო სწორი ელ-ფოსტის მისამართი.';
+        }
+        if (!password) {
+            newErrors.password = 'გთხოვ შეიყვანო პაროლი.';
+        } else if (password.length < 6) {
+            newErrors.password = 'პაროლი უნდა შეიცავდეს მინიმუმ 6 სიმბოლოს.';
+        }
+        if (password && confirmPassword && password !== confirmPassword) {
+            newErrors.confirmPassword = 'პაროლები არ ემთხვევა.';
+        } else if (!confirmPassword) {
+            newErrors.confirmPassword = 'გთხოვ დაადასტურო პაროლი.';
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
-        if (password.length < 6) {
-            toast.error('პაროლი უნდა იყოს მინიმუმ 6 სიმბოლო!');
-            return;
-        }
+        setErrors({});
+
         try {
             await register(email, username, password);
             toast.success('რეგისტრაცია წარმატებულია! კეთილი იყოს თქვენი მობრძანება!');
@@ -29,6 +51,8 @@ export default function RegisterPage() {
             toast.error(err.message);
         }
     };
+
+    const clearError = (field: string) => setErrors(prev => ({ ...prev, [field]: undefined }));
 
     return (
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-8 animate-fade-in">
@@ -40,30 +64,38 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="card p-8">
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} noValidate autoComplete="off" className="space-y-4">
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">მომხმარებლის სახელი *</label>
-                            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)}
-                                className="input-field" placeholder="giorgi_dev" required minLength={3} />
+                            <input type="text" value={username} onChange={(e) => { setUsername(e.target.value); clearError('username'); }}
+                                autoComplete="username"
+                                className={`input-field ${errors.username ? 'border-red-500' : ''}`} placeholder="giorgi_dev" />
+                            {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username}</p>}
                         </div>
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">ელ-ფოსტა *</label>
-                            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                                className="input-field" placeholder="your@email.com" required />
+                            <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
+                                autoComplete="username"
+                                className={`input-field ${errors.email ? 'border-red-500' : ''}`} placeholder="your@email.com" />
+                            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                         </div>
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">პაროლი *</label>
-                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                                className="input-field" placeholder="მინიმუმ 6 სიმბოლო" required minLength={6} />
+                            <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
+                                autoComplete="new-password"
+                                className={`input-field ${errors.password ? 'border-red-500' : ''}`} placeholder="მინიმუმ 6 სიმბოლო" />
+                            {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
                         </div>
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">პაროლის დადასტურება *</label>
-                            <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="input-field" placeholder="გაიმეორეთ პაროლი" required />
+                            <input type="password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword'); }}
+                                autoComplete="new-password"
+                                className={`input-field ${errors.confirmPassword ? 'border-red-500' : ''}`} placeholder="გაიმეორეთ პაროლი" />
+                            {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
                         </div>
 
                         <button type="submit" disabled={isLoading} className="btn-primary w-full py-3">
