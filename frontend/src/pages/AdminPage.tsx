@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import CodeEditor from '../components/CodeEditor';
 import { useConfirm } from '../hooks/useConfirm';
-import { HiCog, HiPencil } from 'react-icons/hi';
+import { HiCog, HiPencil, HiDuplicate, HiChartBar, HiBeaker } from 'react-icons/hi';
 
 export default function AdminPage() {
     const { user } = useAuthStore();
@@ -44,6 +44,7 @@ export default function AdminPage() {
     const [courseLessons, setCourseLessons] = useState<any[]>([]);
     const [draggedLessonIndex, setDraggedLessonIndex] = useState<number | null>(null);
     const [isSavingOrder, setIsSavingOrder] = useState(false);
+    const [aiStatus, setAiStatus] = useState<{ status: 'idle' | 'checking' | 'success' | 'error', message?: string }>({ status: 'idle' });
     const [isGenerating, setIsGenerating] = useState({
         full: false,
         content: false,
@@ -258,6 +259,17 @@ export default function AdminPage() {
         }
     };
 
+    const handleCloneCourse = async (id: string) => {
+        const loadingToast = toast.loading('კურსი კოპირდება...');
+        try {
+            await api.post(`/admin/courses/${id}/clone`);
+            toast.success('კურსი და ლექციები წარმატებით დაკოპირდა!', { id: loadingToast });
+            fetchData();
+        } catch (err: any) {
+            toast.error(err.response?.data?.error || 'ვერ მოხერხდა კოპირება', { id: loadingToast });
+        }
+    };
+
     const startEditingLesson = async (lesson: any) => {
         // ოპტიმიზაციის გამო, სრული ინფორმაცია უნდა წამოვიღოთ ცალკე
         try {
@@ -280,6 +292,25 @@ export default function AdminPage() {
             setIsCreatingLesson(false);
         } catch (err) {
             toast.error('ლექციის მონაცემების ჩატვირთვა ვერ მოხერხდა');
+        }
+    };
+
+    const checkAIStatus = async () => {
+        setAiStatus({ status: 'checking' });
+        try {
+            const res = await api.post('/admin/lessons/generate-content', {
+                title: "Explain how AI works in a few words",
+                courseTitle: "AI Connection Test"
+            });
+            if (res.data.content) {
+                setAiStatus({ status: 'success', message: res.data.content });
+                toast.success('AI კავშირი წარმატებულია! ✨');
+            }
+        } catch (error: any) {
+            console.error('AI check error:', error);
+            const errorMsg = error.response?.data?.error || 'კავშირი ვერ დამყარდა. გადაამოწმეთ API Key.';
+            setAiStatus({ status: 'error', message: errorMsg });
+            toast.error('AI პრობლემა: ' + errorMsg);
         }
     };
 
@@ -497,6 +528,51 @@ export default function AdminPage() {
             {/* დეშბორდი */}
             {activeTab === 'dashboard' && stats && (
                 <div className="space-y-8">
+                    {/* AI სტატუსის შემოწმება */}
+                    <div className="card border-primary-500/20 bg-primary-500/5 hover:border-primary-500/40 transition-all">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center space-x-4">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg ${aiStatus.status === 'success' ? 'bg-green-500 shadow-green-500/20' :
+                                    aiStatus.status === 'error' ? 'bg-red-500 shadow-red-500/20' :
+                                        'bg-primary-500 shadow-primary-500/20'
+                                    }`}>
+                                    <HiBeaker className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white leading-tight">AI ასისტენტის დიაგნოსტიკა</h3>
+                                    <p className="text-sm text-dark-300 mt-0.5">
+                                        {aiStatus.status === 'idle' && 'შეამოწმეთ Gemini AI-ს ხელმისაწვდომობა'}
+                                        {aiStatus.status === 'checking' && 'AI ფიქრობს... გთხოვთ დაელოდოთ'}
+                                        {aiStatus.status === 'success' && '✨ AI კავშირი შესანიშნავია!'}
+                                        {aiStatus.status === 'error' && `❌ შეცდომა: ${aiStatus.message}`}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={checkAIStatus}
+                                disabled={aiStatus.status === 'checking'}
+                                className={`whitespace-nowrap px-6 py-2.5 rounded-xl font-bold transition-all ${aiStatus.status === 'checking'
+                                    ? 'bg-dark-700 text-dark-400 cursor-not-allowed'
+                                    : 'bg-white text-dark-900 hover:bg-primary-50 hover:text-primary-600 shadow-xl'
+                                    }`}
+                            >
+                                {aiStatus.status === 'checking' ? 'მოწმდება...' : 'ტესტირება (v2.0 Flash)'}
+                            </button>
+                        </div>
+                        {aiStatus.status === 'success' && aiStatus.message && (
+                            <div className="mt-4 p-4 bg-dark-900/80 rounded-xl border border-green-500/20 animate-fade-in">
+                                <p className="text-xs text-dark-400 font-medium mb-1 uppercase tracking-wider">AI-ს პასუხი:</p>
+                                <p className="text-sm text-white italic">" {aiStatus.message} "</p>
+                            </div>
+                        )}
+                        {aiStatus.status === 'error' && (
+                            <div className="mt-4 p-4 bg-red-500/10 rounded-xl border border-red-500/20 animate-fade-in text-sm text-red-400">
+                                <p className="font-bold mb-1">რჩევა:</p>
+                                <p>თუ ხედავთ API_KEY_INVALID შეცდომას, დარწმუნდით რომ გასაღები სწორია. თუ ხედავთ QUOTA_EXCEEDED ან 10$ შეცდომას, საჭიროა Google Cloud-ზე ბალანსის შევსება.</p>
+                            </div>
+                        )}
+                    </div>
+
                     {/* სტატისტიკის ბარათები */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <StatCard label="მომხმარებლები" value={stats.total_users} icon="👥" color="primary" />
@@ -714,6 +790,7 @@ export default function AdminPage() {
                                         </div>
                                         <div className="flex space-x-2 mt-auto">
                                             <button onClick={() => setSelectedCourse(course)} className="flex-1 bg-dark-700 hover:bg-dark-600 text-primary-400 py-1.5 rounded-lg text-sm font-medium transition-colors">📋 ლექციები</button>
+                                            <button onClick={() => handleCloneCourse(course.id)} className="bg-dark-700 hover:bg-indigo-500/20 text-indigo-400 py-1.5 px-3 rounded-lg text-sm font-medium transition-colors" title="დუბლირება">📑</button>
                                             <button onClick={() => startEditingCourse(course)} className="bg-dark-700 hover:bg-amber-500/20 text-amber-400 py-1.5 px-3 rounded-lg text-sm font-medium transition-colors">✏️</button>
                                             <button onClick={() => handleDeleteCourse(course.id, course.title)} className="bg-dark-700 hover:bg-red-500/20 text-red-500 py-1.5 px-3 rounded-lg text-sm transition-colors">🗑️</button>
                                         </div>
@@ -747,6 +824,19 @@ export default function AdminPage() {
                                     </button>
                                 )}
                             </div>
+
+                            {/* Templates Toolbar */}
+                            {isCreatingLesson && !editingLessonId && (
+                                <div className="flex flex-wrap gap-2 mb-4 p-3 bg-dark-800/80 rounded-xl border border-dark-700 animate-fade-in">
+                                    <span className="text-xs text-dark-400 w-full mb-1 ml-1 font-medium uppercase tracking-wider">გამოიყენე შაბლონი (Templates):</span>
+                                    <button type="button" onClick={() => setLessonForm({ ...initialLessonForm, title: 'თეორია: ', contentType: 'theory', content: '# შესავალი\n\nაქ დაწერეთ თეორია...' })}
+                                        className="px-3 py-1.5 bg-dark-700 hover:bg-primary-500/20 text-primary-400 rounded-lg text-xs font-bold transition-all border border-dark-600">📖 Theory</button>
+                                    <button type="button" onClick={() => setLessonForm({ ...initialLessonForm, title: 'პრაქტიკა: ', contentType: 'practice', language: 'html', starterCode: '<!-- დაიწყე აქ -->', challengeText: 'შექმენი...' })}
+                                        className="px-3 py-1.5 bg-dark-700 hover:bg-amber-500/20 text-amber-500 rounded-lg text-xs font-bold transition-all border border-dark-600">💻 Practice</button>
+                                    <button type="button" onClick={() => setLessonForm({ ...initialLessonForm, title: 'ქვიზი: ', contentType: 'quiz', content: '### კითხვა 1\n\n- [ ] პასუხი A\n- [x] პასუხი B' })}
+                                        className="px-3 py-1.5 bg-dark-700 hover:bg-purple-500/20 text-purple-400 rounded-lg text-xs font-bold transition-all border border-dark-600">📝 Quiz</button>
+                                </div>
+                            )}
 
                             {(isCreatingLesson || editingLessonId) && (
                                 <div className="card p-6 border border-primary-500/50 shadow-lg shadow-primary-500/10 mb-6">

@@ -8,7 +8,7 @@ const {
     getAchievements, createAchievement, updateAchievement, deleteAchievement,
     getSubmissions, clearAllSubmissions, reorderLessons,
     getUserEnrollments, enrollUser, unenrollUser, getLessonById,
-    generateTestCases, generateFullLesson, generateLessonContent, generateCodeChallenge, cloneLesson
+    generateTestCases, generateFullLesson, generateLessonContent, generateCodeChallenge, cloneLesson, cloneCourse
 } = require('../controllers/adminController');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
@@ -62,6 +62,7 @@ router.delete('/submissions/clear', admin, clearAllSubmissions);
 router.get('/courses', instructor, getCourses);
 router.post('/courses', instructor, createCourse);
 router.put('/courses/:id', instructor, updateCourse);
+router.post('/courses/:id/clone', instructor, cloneCourse);
 router.delete('/courses/:id', instructor, deleteCourse);
 
 // ლექციები

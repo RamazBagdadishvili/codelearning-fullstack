@@ -447,6 +447,61 @@ const cloneLesson = async (req, res, next) => {
     }
 };
 
+// კურსის დუბლირება (Clone)
+// POST /api/admin/courses/:id/clone
+const cloneCourse = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        // 1. გამოვიძახოთ ორიგინალი კურსი
+        const originalCourse = await query('SELECT * FROM courses WHERE id = $1', [id]);
+        if (originalCourse.rows.length === 0) return res.status(404).json({ error: 'კურსი ვერ მოიძებნა.' });
+
+        const course = originalCourse.rows[0];
+
+        // 2. მოვამზადოთ ახალი მონაცემები
+        const newTitle = `${course.title} (კოპია)`;
+        const newSlug = `${course.slug}-copy-${Date.now().toString().slice(-4)}`;
+
+        // 3. ჩავწეროთ ახალი კურსი
+        const courseResult = await query(
+            `INSERT INTO courses (
+                title, slug, description, short_description, category, 
+                difficulty, level, icon, color, estimated_hours, created_by, is_published
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, false) RETURNING *`,
+            [
+                newTitle, newSlug, course.description, course.short_description, course.category,
+                course.difficulty, course.level, course.icon, course.color, course.estimated_hours, req.user.id
+            ]
+        );
+
+        const newCourseId = courseResult.rows[0].id;
+
+        // 4. დავაკოპიროთ ყველა ლექცია
+        const lessons = await query('SELECT * FROM lessons WHERE course_id = $1 ORDER BY sort_order ASC', [id]);
+
+        for (const lesson of lessons.rows) {
+            await query(
+                `INSERT INTO lessons (
+                    course_id, title, slug, content, content_type, starter_code, 
+                    solution_code, challenge_text, test_cases, hints, language, 
+                    xp_reward, sort_order, is_published
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, false)`,
+                [
+                    newCourseId, lesson.title, `${lesson.slug}-copy-${Math.random().toString(36).substring(7)}`,
+                    lesson.content, lesson.content_type, lesson.starter_code,
+                    lesson.solution_code, lesson.challenge_text, lesson.test_cases,
+                    lesson.hints, lesson.language, lesson.xp_reward, lesson.sort_order
+                ]
+            );
+        }
+
+        res.json({ course: courseResult.rows[0], message: 'კურსი და მისი ლექციები წარმატებით დაკოპირდა.' });
+    } catch (error) {
+        next(error);
+    }
+};
+
 // ყველა მომხმარებელი (ადმინისთვის)
 // GET /api/admin/users
 const getUsers = async (req, res, next) => {
@@ -928,5 +983,5 @@ module.exports = {
     getAchievements, createAchievement, updateAchievement, deleteAchievement,
     getSubmissions, clearAllSubmissions, reorderLessons,
     getUserEnrollments, enrollUser, unenrollUser, getLessonById,
-    generateTestCases, generateFullLesson, generateLessonContent, generateCodeChallenge, cloneLesson
+    generateTestCases, generateFullLesson, generateLessonContent, generateCodeChallenge, cloneLesson, cloneCourse
 };
