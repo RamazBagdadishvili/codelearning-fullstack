@@ -27,7 +27,7 @@ router.get('/analytics', admin, getAnalytics);
 
 // მომხმარებლების მართვა
 router.get('/users', admin, getUsers);
-router.post('/users/bulk', admin, bulkUserAction);
+
 router.put('/users/:id/role', admin, updateUserRole);
 router.put('/users/:id/toggle-active', admin, toggleUserActive);
 router.put('/users/:id/level', admin, updateUserLevel);
