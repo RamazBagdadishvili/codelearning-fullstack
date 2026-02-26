@@ -43,21 +43,21 @@ export default function LeaderboardPage() {
 
             {/* ტოპ 3 */}
             {leaderboard.length >= 3 && (
-                <div className="flex justify-center items-end gap-4 mb-12">
+                <div className="flex justify-center items-end gap-2 sm:gap-4 mb-8 sm:mb-12 px-2">
                     {[leaderboard[1], leaderboard[0], leaderboard[2]].map((u, i) => {
                         const rank = i === 0 ? 2 : i === 1 ? 1 : 3;
-                        const heights = ['h-32', 'h-40', 'h-28'];
+                        const heights = ['h-24 sm:h-32', 'h-32 sm:h-40', 'h-20 sm:h-28'];
                         return (
-                            <div key={u.id} className="flex flex-col items-center">
-                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-xl font-bold text-white mb-2">
+                            <div key={u.id} className="flex flex-col items-center flex-1 max-w-[100px] sm:max-w-none">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-lg sm:text-xl font-bold text-white mb-2 shadow-lg shadow-primary-500/20">
                                     {u.username?.charAt(0).toUpperCase()}
                                 </div>
-                                <p className="text-white font-semibold text-sm mb-1">{u.username}</p>
-                                <p className="text-amber-400 text-sm font-bold">⚡ {u.xp_points} XP</p>
-                                <div className={`${heights[i]} w-24 mt-4 rounded-t-xl bg-gradient-to-t 
+                                <p className="text-white font-semibold text-[10px] sm:text-sm mb-0.5 truncate w-full text-center">{u.username}</p>
+                                <p className="text-amber-400 text-[10px] sm:text-sm font-bold">⚡{u.xp_points}</p>
+                                <div className={`${heights[i]} w-full mt-3 rounded-t-xl bg-gradient-to-t 
                   ${rank === 1 ? 'from-amber-600 to-amber-400' : rank === 2 ? 'from-slate-500 to-slate-300' : 'from-orange-700 to-orange-500'}
-                  flex items-start justify-center pt-4`}>
-                                    <span className="text-3xl">{getRankBadge(rank)}</span>
+                  flex items-start justify-center pt-3`}>
+                                    <span className="text-xl sm:text-3xl">{getRankBadge(rank)}</span>
                                 </div>
                             </div>
                         );
@@ -66,42 +66,63 @@ export default function LeaderboardPage() {
             )}
 
             {/* სრული სია */}
-            <div className="card overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="border-b border-dark-800">
-                            <th className="text-left text-dark-400 font-medium p-4 text-sm">#</th>
-                            <th className="text-left text-dark-400 font-medium p-4 text-sm">მომხმარებელი</th>
-                            <th className="text-right text-dark-400 font-medium p-4 text-sm">XP</th>
-                            <th className="text-right text-dark-400 font-medium p-4 text-sm hidden sm:table-cell">Level</th>
-                            <th className="text-right text-dark-400 font-medium p-4 text-sm hidden md:table-cell">ლექციები</th>
-                            <th className="text-right text-dark-400 font-medium p-4 text-sm hidden md:table-cell">სტრიქი</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {(leaderboard || []).map((u: any) => (
-                            <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/50 transition-colors
-                ${u.id === user?.id ? 'bg-primary-500/5 border-primary-500/20' : ''}`}>
-                                <td className="p-2 sm:p-4 font-bold text-base sm:text-lg text-center sm:text-left">{getRankBadge(parseInt(u.rank))}</td>
-                                <td className="p-2 sm:p-4">
-                                    <div className="flex items-center space-x-2 sm:space-x-3">
-                                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold text-xs sm:text-base shrink-0">
-                                            {u.username?.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-white font-medium text-sm sm:text-base truncate">{u.full_name || u.username}</p>
-                                            <p className="text-dark-500 text-xs truncate">@{u.username}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="p-2 sm:p-4 text-right text-amber-400 font-bold text-sm sm:text-base whitespace-nowrap">⚡ {u.xp_points}</td>
-                                <td className="p-4 text-right text-primary-400 font-medium hidden sm:table-cell">Lv.{u.level}</td>
-                                <td className="p-4 text-right text-dark-300 hidden md:table-cell">{u.completed_lessons}</td>
-                                <td className="p-4 text-right text-orange-400 hidden md:table-cell">🔥 {u.streak_days}</td>
+            <div className="card overflow-hidden p-0 border-dark-800">
+                <div className="hidden sm:block">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-dark-800 bg-dark-800/30">
+                                <th className="text-left text-dark-400 font-medium p-4 text-sm">#</th>
+                                <th className="text-left text-dark-400 font-medium p-4 text-sm">მომხმარებელი</th>
+                                <th className="text-right text-dark-400 font-medium p-4 text-sm">XP</th>
+                                <th className="text-right text-dark-400 font-medium p-4 text-sm hidden sm:table-cell">Level</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {(leaderboard || []).map((u: any) => (
+                                <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/50 transition-colors
+                                    ${u.id === user?.id ? 'bg-primary-500/5 border-primary-500/20' : ''}`}>
+                                    <td className="p-4 font-bold text-lg">{getRankBadge(parseInt(u.rank))}</td>
+                                    <td className="p-4">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold">
+                                                {u.username?.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-medium">{u.full_name || u.username}</p>
+                                                <p className="text-dark-500 text-sm">@{u.username}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-right text-amber-400 font-bold">⚡ {u.xp_points}</td>
+                                    <td className="p-4 text-right text-primary-400 font-medium hidden sm:table-cell">Lv.{u.level}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile List View */}
+                <div className="sm:hidden divide-y divide-dark-800">
+                    {(leaderboard || []).map((u: any) => (
+                        <div key={u.id} className={`p-4 flex items-center justify-between gap-3 ${u.id === user?.id ? 'bg-primary-500/10' : ''}`}>
+                            <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-base font-bold text-dark-400 w-6 shrink-0">{getRankBadge(parseInt(u.rank))}</span>
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-accent-600 flex items-center justify-center text-white font-bold shrink-0">
+                                    {u.username?.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-white font-bold text-sm truncate">{u.full_name || u.username}</p>
+                                    <p className="text-dark-500 text-xs truncate">@{u.username}</p>
+                                </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                                <div className="text-amber-400 font-bold text-sm">⚡{u.xp_points}</div>
+                                <div className="text-primary-500 text-[10px] font-medium">Lv.{u.level}</div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 {leaderboard.length === 0 && (
                     <p className="text-center text-dark-500 py-10">ლიდერბორდი ცარიელია.</p>
                 )}
