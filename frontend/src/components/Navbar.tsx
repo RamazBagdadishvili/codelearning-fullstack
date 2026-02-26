@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useState, useEffect } from 'react';
-import { HiMenu, HiX, HiAcademicCap, HiUser, HiLogout, HiChartBar, HiStar, HiCog } from 'react-icons/hi';
+import { HiMenu, HiX, HiUser, HiLogout, HiCog } from 'react-icons/hi';
 import NotificationBell from './NotificationBell';
 
 

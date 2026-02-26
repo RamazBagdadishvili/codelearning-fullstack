@@ -83,16 +83,29 @@ export default function ProfilePage() {
                         {user?.level || 1}
                     </div>
                     <div className="flex-1">
-                        <div className="flex justify-between text-sm text-dark-400 mb-2">
-                            <span>Level {user?.level}</span>
-                            <span>Level {(user?.level || 1) + 1}</span>
-                        </div>
-                        <div className="progress-bar h-3">
-                            <div className="progress-fill" style={{ width: `${((user?.xpPoints || 0) % 100)}%` }} />
-                        </div>
-                        <p className="text-dark-500 text-sm mt-1">
-                            {100 - ((user?.xpPoints || 0) % 100)} XP შემდეგი level-ისთვის
-                        </p>
+                        {(() => {
+                            const currentLevel = user?.level || 1;
+                            const xp = user?.xpPoints || 0;
+                            const xpPerLevel = 100 * currentLevel;
+                            const currentLevelXpStart = 100 * (currentLevel * (currentLevel - 1)) / 2;
+                            const xpIntoLevel = xp - currentLevelXpStart;
+                            const progressPct = Math.min(100, Math.max(0, Math.round((xpIntoLevel / xpPerLevel) * 100)));
+                            const xpRemaining = Math.max(0, xpPerLevel - xpIntoLevel);
+                            return (
+                                <>
+                                    <div className="flex justify-between text-sm text-dark-400 mb-2">
+                                        <span>Level {currentLevel}</span>
+                                        <span>Level {currentLevel + 1}</span>
+                                    </div>
+                                    <div className="progress-bar h-3">
+                                        <div className="progress-fill" style={{ width: `${progressPct}%` }} />
+                                    </div>
+                                    <p className="text-dark-500 text-sm mt-1">
+                                        {xpRemaining} XP შემდეგი level-ისთვის
+                                    </p>
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

@@ -43,9 +43,7 @@ export const useCourseStore = create<CourseState>((set) => ({
     filters: {},
 
     fetchCourses: async (filters = {}) => {
-        // BUG-10: Only show loading when there are actual filter params to prevent flicker when clearing search
-        const hasFilters = filters.level || filters.category || filters.difficulty || filters.search;
-        if (hasFilters) set({ isLoading: true });
+        set({ isLoading: true });
         try {
             const params = new URLSearchParams();
             if (filters.level) params.append('level', filters.level);

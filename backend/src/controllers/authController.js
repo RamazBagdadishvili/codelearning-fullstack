@@ -83,7 +83,7 @@ const login = async (req, res, next) => {
 
         // მომხმარებლის მოძიება
         const result = await query(
-            'SELECT id, email, username, password_hash, full_name, role, xp_points, level, streak_days, avatar_url FROM users WHERE email = $1 AND is_active = true',
+            'SELECT id, email, username, password_hash, full_name, role, xp_points, level, streak_days, last_active_date, avatar_url FROM users WHERE email = $1 AND is_active = true',
             [email]
         );
 
