@@ -18,7 +18,31 @@ const getAllAchievements = async (req, res, next) => {
             [req.user.id]
         );
 
-        res.json({ achievements: result.rows });
+        // მომხმარებლის სტატისტიკის მიღება progress ბარისთვის
+        const statsResult = await query(
+            `SELECT 
+                (SELECT COUNT(*) FROM user_progress WHERE user_id = $1 AND status = 'completed') as lessons_completed,
+                (SELECT COUNT(DISTINCT course_id) FROM course_enrollments WHERE user_id = $1 AND progress_percentage = 100) as courses_completed,
+                (SELECT streak_days FROM users WHERE id = $1) as streak_days,
+                (SELECT xp_points FROM users WHERE id = $1) as xp_earned,
+                (SELECT COUNT(*) FROM code_submissions WHERE user_id = $1) as code_submissions`,
+            [req.user.id]
+        );
+        const stats = statsResult.rows[0];
+
+        const achievementsWithProgress = result.rows.map(a => {
+            let currentValue = 0;
+            switch (a.criteria_type) {
+                case 'lessons_completed': currentValue = parseInt(stats.lessons_completed); break;
+                case 'courses_completed': currentValue = parseInt(stats.courses_completed); break;
+                case 'streak_days': currentValue = parseInt(stats.streak_days); break;
+                case 'xp_earned': currentValue = parseInt(stats.xp_earned); break;
+                case 'code_submissions': currentValue = parseInt(stats.code_submissions); break;
+            }
+            return { ...a, current_value: currentValue };
+        });
+
+        res.json({ achievements: achievementsWithProgress });
     } catch (error) {
         next(error);
     }

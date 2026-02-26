@@ -41,10 +41,33 @@ const getUserProgress = async (req, res, next) => {
             [req.user.id]
         );
 
+        // 12 Weeks Activity Heatmap
+        const heatmapResult = await query(
+            `SELECT DATE(created_at) as date, COUNT(*) as count
+             FROM code_submissions
+             WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '12 weeks'
+             GROUP BY DATE(created_at)
+             ORDER BY date ASC`,
+            [req.user.id]
+        );
+
+        // ბოლო 3 Badge (მიღწევა)
+        const badgesResult = await query(
+            `SELECT a.id, a.name, a.icon, a.description, ua.earned_at
+             FROM user_achievements ua
+             JOIN achievements a ON a.id = ua.achievement_id
+             WHERE ua.user_id = $1
+             ORDER BY ua.earned_at DESC
+             LIMIT 3`,
+            [req.user.id]
+        );
+
         res.json({
             courses: coursesResult.rows,
             stats: statsResult.rows[0],
-            recentActivity: recentResult.rows
+            recentActivity: recentResult.rows,
+            heatmap: heatmapResult.rows,
+            recentBadges: badgesResult.rows
         });
     } catch (error) {
         next(error);

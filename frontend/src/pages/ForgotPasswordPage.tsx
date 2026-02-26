@@ -46,7 +46,7 @@ export default function ForgotPasswordPage() {
                         </form>
                     ) : (
                         <div className="text-center space-y-4">
-                            <div className="bg-success-500/10 text-success-400 p-4 rounded-xl border border-success-500/20">
+                            <div className="bg-emerald-500/10 text-emerald-400 p-4 rounded-xl border border-emerald-500/20">
                                 ინსტრუქცია გაიგზავნა თქვენს ელ-ფოსტაზე: <strong>{email}</strong>
                             </div>
                             <p className="text-dark-400 text-sm">

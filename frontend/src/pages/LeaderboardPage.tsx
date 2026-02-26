@@ -2,24 +2,27 @@ import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { useAuthStore } from '../stores/authStore';
 import { formatXP } from '../utils/formatters';
+import { HiFire, HiCalendar, HiGlobe } from 'react-icons/hi';
 
 export default function LeaderboardPage() {
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
     const [userRank, setUserRank] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [timeframe, setTimeframe] = useState<'week' | 'month' | 'all'>('all');
     const { user } = useAuthStore();
 
     useEffect(() => {
         const fetch = async () => {
+            setIsLoading(true);
             try {
-                const { data } = await api.get('/leaderboard');
+                const { data } = await api.get(`/leaderboard?timeframe=${timeframe}`);
                 setLeaderboard(data.leaderboard);
                 setUserRank(data.userRank);
             } catch { }
             setIsLoading(false);
         };
         fetch();
-    }, []);
+    }, [timeframe]);
 
     const getRankBadge = (rank: number) => {
         if (rank === 1) return '🥇';
@@ -40,6 +43,30 @@ export default function LeaderboardPage() {
                 {userRank && (
                     <p className="text-primary-400 mt-2">თქვენი პოზიცია: #{userRank}</p>
                 )}
+
+                {/* Timeframe Filters */}
+                <div className="flex items-center justify-center mt-6">
+                    <div className="bg-dark-900 border border-dark-800 rounded-xl p-1 flex gap-1">
+                        <button
+                            onClick={() => setTimeframe('week')}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${timeframe === 'week' ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}
+                        >
+                            <HiFire className="w-4 h-4" /> კვირა
+                        </button>
+                        <button
+                            onClick={() => setTimeframe('month')}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${timeframe === 'month' ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}
+                        >
+                            <HiCalendar className="w-4 h-4" /> თვე
+                        </button>
+                        <button
+                            onClick={() => setTimeframe('all')}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${timeframe === 'all' ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}
+                        >
+                            <HiGlobe className="w-4 h-4" /> სრული
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* ტოპ 3 */}
@@ -117,7 +144,7 @@ export default function LeaderboardPage() {
                                 </div>
                             </div>
                             <div className="text-right shrink-0">
-                                <div className="text-amber-400 font-bold text-sm">⚡{u.xp_points}</div>
+                                <div className="text-amber-400 font-bold text-sm">⚡{formatXP(u.xp_points)}</div>
                                 <div className="text-primary-500 text-[10px] font-medium">Lv.{u.level}</div>
                             </div>
                         </div>

@@ -17,13 +17,15 @@ import LeaderboardPage from './pages/LeaderboardPage';
 import AchievementsPage from './pages/AchievementsPage';
 import AdminPage from './pages/AdminPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <div className="min-h-screen flex flex-col bg-dark-950">
                 <Navbar />
-                <main className="flex-1">
+                <main className="flex-1 pb-16 md:pb-0">
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />

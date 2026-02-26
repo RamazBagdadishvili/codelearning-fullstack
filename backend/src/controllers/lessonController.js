@@ -106,19 +106,41 @@ const submitCode = async (req, res, next) => {
                     const queryMatch = test.testCode.match(/querySelector\(['"]([^'"]+)['"]\)/);
                     const innerTextMatch = test.testCode.match(/\.innerText\)\.toBe\(['"]([^'"]+)['"]\)/);
                     const toContainMatch = test.testCode.match(/\.toContain\(['"]([^'"]+)['"]\)/);
+                    const getAttributeMatch = test.testCode.match(/getAttribute\(['"]([^'"]+)['"]\)/);
+                    const toBeTruthyMatch = test.testCode.includes('.toBeTruthy()');
 
                     if (queryMatch) {
-                        const tag = queryMatch[1];
-                        if (innerTextMatch) {
+                        const selector = queryMatch[1];
+                        // ატრიბუტის სელექტორის დამუშავება, მაგ: 'img[src]', 'a[href]', 'a[target]'
+                        const attrSelectorMatch = selector.match(/^(\w+)\[(\w+)\]$/);
+
+                        if (attrSelectorMatch) {
+                            // მაგ: querySelector('img[src]') — ტეგი + ატრიბუტი
+                            const tag = attrSelectorMatch[1];
+                            const attr = attrSelectorMatch[2];
+                            const tagRegex = new RegExp(`<${tag}[^>]+${attr}\\s*=`, 'i');
+                            testPassed = tagRegex.test(codeWithoutComments);
+                            expected = `<${tag} ${attr}="...">`;
+                        } else if (getAttributeMatch) {
+                            // მაგ: querySelector('img').getAttribute('src') — ატრიბუტის მნიშვნელობის შემოწმება
+                            const tag = selector;
+                            const attr = getAttributeMatch[1];
+                            const tagRegex = new RegExp(`<${tag}[^>]+${attr}\\s*=\\s*["'][^"']+["']`, 'i');
+                            testPassed = tagRegex.test(codeWithoutComments);
+                            expected = `<${tag} ${attr}="...">`;
+                        } else if (innerTextMatch) {
                             const expectedText = innerTextMatch[1];
-                            testPassed = codeWithoutComments.toLowerCase().includes(`<${tag}`) &&
+                            testPassed = codeWithoutComments.toLowerCase().includes(`<${selector}`) &&
                                 codeWithoutComments.toLowerCase().includes(expectedText.toLowerCase());
+                        } else if (toBeTruthyMatch) {
+                            // მაგ: expect(document.querySelector('ul')).toBeTruthy()
+                            expected = `<${selector}>`;
+                            testPassed = codeWithoutComments.toLowerCase().includes(`<${selector}`);
                         } else {
-                            expected = `<${tag}`;
+                            expected = `<${selector}`;
                             testPassed = codeWithoutComments.toLowerCase().includes(expected.toLowerCase());
                         }
                     } else if (toContainMatch) {
-                        // Bug 3: Basic string match eval for JS lessons using toContain
                         const expectedText = toContainMatch[1];
                         testPassed = codeWithoutComments.toLowerCase().includes(expectedText.toLowerCase());
                     } else if (test.testCode && (test.testCode.toLowerCase().includes('doctype') || testName.toLowerCase().includes('doctype'))) {
@@ -189,6 +211,27 @@ const submitCode = async (req, res, next) => {
                 await query(
                     'UPDATE users SET level = LEAST(200, GREATEST(1, FLOOR(xp_points / 100) + 1)) WHERE id = $1',
                     [req.user.id]
+                );
+
+                // კურსის პროგრესის გადაანგარიშება enrollment-ში
+                await query(
+                    `UPDATE course_enrollments SET progress_percentage = (
+                        SELECT ROUND(
+                            COUNT(*) FILTER (WHERE up.status = 'completed')::float 
+                            / NULLIF((SELECT COUNT(*) FROM lessons WHERE course_id = $2 AND is_published = true), 0) * 100
+                        )
+                        FROM lessons l
+                        LEFT JOIN user_progress up ON l.id = up.lesson_id AND up.user_id = $1
+                        WHERE l.course_id = $2 AND l.is_published = true
+                    ),
+                    completed_at = CASE 
+                        WHEN (SELECT COUNT(*) FILTER (WHERE up.status = 'completed')
+                              FROM lessons l LEFT JOIN user_progress up ON l.id = up.lesson_id AND up.user_id = $1
+                              WHERE l.course_id = $2 AND l.is_published = true) 
+                            = (SELECT COUNT(*) FROM lessons WHERE course_id = $2 AND is_published = true)
+                        THEN NOW() ELSE NULL END
+                    WHERE user_id = $1 AND course_id = $2`,
+                    [req.user.id, lesson.course_id]
                 );
             } else {
                 await query(

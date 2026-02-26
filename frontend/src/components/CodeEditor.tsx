@@ -57,7 +57,8 @@ export default function CodeEditor({ value, onChange, language = 'html', readOnl
                 EditorState.readOnly.of(readOnly),
                 EditorView.theme({
                     '&': { backgroundColor: '#0f172a' },
-                    '.cm-gutters': { backgroundColor: '#0f172a', borderRight: '1px solid #1e293b' },
+                    '.cm-content': { paddingLeft: '8px' },
+                    '.cm-gutters': { backgroundColor: '#0f172a', borderRight: '1px solid #1e293b', minWidth: '40px' },
                     '.cm-activeLineGutter': { backgroundColor: '#1e293b' },
                     '.cm-activeLine': { backgroundColor: '#1e293b40' },
                 }),

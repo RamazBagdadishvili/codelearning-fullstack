@@ -709,7 +709,8 @@ const getAnalytics = async (req, res, next) => {
         const hardestLessons = await query(`
             SELECT l.title, c.title as course_title,
                    COUNT(up.id) as attempts,
-                   COUNT(up.id) FILTER (WHERE up.status = 'completed') as completions
+                   COUNT(up.id) FILTER (WHERE up.status = 'completed') as completions,
+                   (COUNT(up.id) FILTER (WHERE up.status = 'completed'))::float / NULLIF(COUNT(up.id), 0) as success_rate
             FROM lessons l
             JOIN courses c ON l.course_id = c.id
             LEFT JOIN user_progress up ON l.id = up.lesson_id

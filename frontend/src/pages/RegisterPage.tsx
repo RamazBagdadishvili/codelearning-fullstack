@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
+import { HiEye, HiEyeOff } from 'react-icons/hi';
 
 export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errors, setErrors] = useState<{ username?: string; email?: string; password?: string; confirmPassword?: string }>({});
     const { register, isLoading, isAuthenticated } = useAuthStore();
     const navigate = useNavigate();
@@ -63,7 +66,6 @@ export default function RegisterPage() {
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-8 animate-fade-in">
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
-                    <span className="text-4xl mb-4 block">🚀</span>
                     <h1 className="text-3xl font-bold text-white mb-2">რეგისტრაცია</h1>
                     <p className="text-dark-400">შექმენით უფასო ანგარიში და დაიწყეთ სწავლა</p>
                 </div>
@@ -75,7 +77,7 @@ export default function RegisterPage() {
                             <label className="block text-dark-300 text-sm font-medium mb-2">მომხმარებლის სახელი *</label>
                             <input type="text" value={username} onChange={(e) => { setUsername(e.target.value); clearError('username'); }}
                                 autoComplete="username"
-                                className={`input-field ${errors.username ? 'border-red-500' : ''}`} placeholder="giorgi_dev" />
+                                className={`input-field ${errors.username ? 'border-red-500' : ''}`} placeholder="johndoe" />
                             {errors.username && <p className="text-red-400 text-xs mt-1">{errors.username}</p>}
                         </div>
 
@@ -83,23 +85,33 @@ export default function RegisterPage() {
                             <label className="block text-dark-300 text-sm font-medium mb-2">ელ-ფოსტა *</label>
                             <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); clearError('email'); }}
                                 autoComplete="username"
-                                className={`input-field ${errors.email ? 'border-red-500' : ''}`} placeholder="your@email.com" />
+                                className={`input-field ${errors.email ? 'border-red-500' : ''}`} placeholder="name@example.com" />
                             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
                         </div>
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">პაროლი *</label>
-                            <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
-                                autoComplete="new-password"
-                                className={`input-field ${errors.password ? 'border-red-500' : ''}`} placeholder="მინიმუმ 6 სიმბოლო" />
+                            <div className="relative">
+                                <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); clearError('password'); }}
+                                    autoComplete="new-password"
+                                    className={`input-field pr-10 ${errors.password ? 'border-red-500' : ''}`} placeholder="••••••••" />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-dark-400 hover:text-white" aria-label={showPassword ? "პაროლის დამალვა" : "პაროლის გამოჩენა"}>
+                                    {showPassword ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
+                                </button>
+                            </div>
                             {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password}</p>}
                         </div>
 
                         <div>
                             <label className="block text-dark-300 text-sm font-medium mb-2">პაროლის დადასტურება *</label>
-                            <input type="password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword'); }}
-                                autoComplete="new-password"
-                                className={`input-field ${errors.confirmPassword ? 'border-red-500' : ''}`} placeholder="გაიმეორეთ პაროლი" />
+                            <div className="relative">
+                                <input type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); clearError('confirmPassword'); }}
+                                    autoComplete="new-password"
+                                    className={`input-field pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`} placeholder="••••••••" />
+                                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 flex items-center pr-3 text-dark-400 hover:text-white" aria-label={showConfirmPassword ? "პაროლის დამალვა" : "პაროლის გამოჩენა"}>
+                                    {showConfirmPassword ? <HiEyeOff className="w-5 h-5" /> : <HiEye className="w-5 h-5" />}
+                                </button>
+                            </div>
                             {errors.confirmPassword && <p className="text-red-400 text-xs mt-1">{errors.confirmPassword}</p>}
                         </div>
 

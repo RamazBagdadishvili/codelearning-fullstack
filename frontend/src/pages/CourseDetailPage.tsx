@@ -237,7 +237,13 @@ export default function CourseDetailPage() {
 
                     if (isLocked || !isAuthenticated) {
                         return (
-                            <div key={lesson.id} onClick={() => !isAuthenticated && toast.error('გთხოვთ გაიაროთ ავტორიზაცია')}>
+                            <div key={lesson.id} onClick={() => {
+                                if (!isAuthenticated) {
+                                    toast.error('გთხოვთ გაიაროთ ავტორიზაცია');
+                                } else if (isLocked) {
+                                    toast.error('ჯერ წინა ლექცია უნდა დაასრულოთ');
+                                }
+                            }}>
                                 {content}
                             </div>
                         );

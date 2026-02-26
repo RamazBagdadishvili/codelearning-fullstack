@@ -38,7 +38,7 @@ export default function CoursesPage() {
         if (debouncedSearch) filters.search = debouncedSearch;
         // BUG-10: Don't show loading spinner when clearing search
         fetchCourses(filters);
-    }, [selectedLevel, selectedDifficulty, debouncedSearch]);
+    }, [selectedLevel, selectedDifficulty, debouncedSearch, fetchCourses]);
 
     // Level-ებად დაჯგუფება
     const coursesByLevel: Record<number, typeof courses> = {};
@@ -75,6 +75,12 @@ export default function CoursesPage() {
                     <option value="intermediate">საშუალო</option>
                     <option value="advanced">მოწინავე</option>
                 </select>
+                {(search || selectedLevel || selectedDifficulty) && (
+                    <button onClick={() => { setSearch(''); setSelectedLevel(null); setSelectedDifficulty(null); }}
+                        className="btn-secondary whitespace-nowrap px-4 py-2 rounded-xl bg-dark-800 hover:bg-dark-700 text-dark-300 transition-colors">
+                        გასუფთავება
+                    </button>
+                )}
             </div>
 
             {/* კურსების სია */}
@@ -94,15 +100,25 @@ export default function CoursesPage() {
                         ))}
                     </div>
                     {courses.length === 0 && (
-                        <p className="text-center text-dark-500 py-10">კურსი ვერ მოიძებნა.</p>
+                        <div className="text-center py-16">
+                            <div className="text-6xl mb-4 opacity-30 mx-auto w-16 h-16 flex items-center justify-center">🔍</div>
+                            <p className="text-dark-300 text-xl font-bold mb-2">კურსი ვერ მოიძებნა</p>
+                            <p className="text-dark-500 text-sm mb-6 max-w-sm mx-auto">სცადეთ სხვა საძიებო სიტყვა ან გაასუფთავეთ ფილტრები.</p>
+                            <button onClick={() => { setSearch(''); setSelectedLevel(null); setSelectedDifficulty(null); }} className="btn-primary inline-flex items-center gap-2">
+                                ფილტრების გასუფთავება
+                            </button>
+                        </div>
                     )}
                 </div>
             ) : Object.keys(coursesByLevel).length === 0 ? (
                 // BUG-3: Empty state when no courses match search
                 <div className="text-center py-16">
-                    <div className="text-6xl mb-4 opacity-30">🔍</div>
-                    <p className="text-dark-400 text-lg">კურსი ვერ მოიძებნა.</p>
-                    <p className="text-dark-600 text-sm mt-2">სცადეთ სხვა საძიებო სიტყვა.</p>
+                    <div className="text-6xl mb-4 opacity-30 mx-auto w-16 h-16 flex items-center justify-center">🔍</div>
+                    <p className="text-dark-300 text-xl font-bold mb-2">კურსი ვერ მოიძებნა</p>
+                    <p className="text-dark-500 text-sm mb-6 max-w-sm mx-auto">სცადეთ სხვა საძიებო სიტყვა ან გაასუფთავეთ ფილტრები.</p>
+                    <button onClick={() => { setSearch(''); setSelectedLevel(null); setSelectedDifficulty(null); }} className="btn-primary inline-flex items-center gap-2">
+                        ფილტრების გასუფთავება
+                    </button>
                 </div>
             ) : (
                 // ყველა Level-ის ნახვა
@@ -132,12 +148,17 @@ export default function CoursesPage() {
     );
 }
 
+import { useAuthStore } from '../stores/authStore';
+
 function CourseCard({ course }: { course: any }) {
     const diff = DIFFICULTY_MAP[course.difficulty] || DIFFICULTY_MAP.beginner;
     const lessonCount = course.total_lessons || course.lesson_count || 0;
+    const { isAuthenticated, user } = useAuthStore();
+    const enrollment = isAuthenticated ? user?.enrollments?.find((e: any) => e.course_id === course.id || e.course?.id === course.id) : null;
+    const progress = enrollment != null ? (enrollment.progress_percentage || 0) : null;
 
     return (
-        <Link to={`/courses/${course.slug}`} className="card-hover group relative">
+        <Link to={`/courses/${course.slug}`} className="card-hover group relative flex flex-col h-full">
             {lessonCount === 0 && (
                 <span className="absolute top-3 right-3 px-2.5 py-1 bg-dark-700 text-dark-300 text-xs font-bold rounded-lg border border-dark-600 z-10">
                     🕐 მალე
@@ -153,10 +174,18 @@ function CourseCard({ course }: { course: any }) {
             <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-primary-400 transition-colors">
                 {course.title}
             </h3>
-            <p className="text-dark-400 text-sm mb-4 line-clamp-2">{course.short_description}</p>
-            <div className="flex items-center justify-between text-sm text-dark-500">
-                <span>📚 {lessonCount} ლექცია</span>
-                <span>⏱️ {course.estimated_hours || '?'}სთ</span>
+            <p className="text-dark-400 text-sm mb-4 line-clamp-2 flex-grow">{course.short_description}</p>
+            <div className="mt-auto">
+                <div className="flex items-center justify-between text-sm text-dark-500">
+                    <span>📚 {lessonCount} ლექცია</span>
+                    <span>⏱️ {course.estimated_hours || '?'}სთ</span>
+                </div>
+                {progress !== null && (
+                    <div className="mt-3 w-full bg-dark-800 rounded-full h-1.5 overflow-hidden">
+                        <div className="bg-gradient-to-r from-primary-500 to-accent-500 h-full rounded-full transition-all duration-1000 ease-out"
+                            style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
+                    </div>
+                )}
             </div>
         </Link>
     );

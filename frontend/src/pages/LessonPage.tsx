@@ -11,6 +11,7 @@ import {
     HiCode, HiBookOpen, HiEye, HiPlay, HiClipboard,
     HiTerminal, HiBeaker, HiRefresh, HiX
 } from 'react-icons/hi';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 // ─────────────────────────────────────────────────────────────
 // Georgian typo fixer (skips code blocks & inline code)
@@ -234,6 +235,7 @@ export default function LessonPage() {
     const [hintError, setHintError] = useState(false);
     const [isExplainingAI, setIsExplainingAI] = useState(false);
     const [explanation, setExplanation] = useState<string | null>(null);
+    const [failedSubmissions, setFailedSubmissions] = useState(0);
 
     // Mobile tab: 'theory' | 'editor' | 'output'
     const [mobileTab, setMobileTab] = useState<'theory' | 'editor' | 'output'>('theory');
@@ -247,6 +249,13 @@ export default function LessonPage() {
     const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
     // Copy feedback
     const [copied, setCopied] = useState(false);
+
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+    useEffect(() => {
+        const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -345,6 +354,14 @@ export default function LessonPage() {
                 updateXP(data.xpEarned, data.newLevel);
             } else {
                 toast.error('სცადეთ ხელახლა. შეამოწმეთ კოდი.');
+                setFailedSubmissions(prev => {
+                    const next = prev + 1;
+                    if (next === 3 && parseHints(lesson?.hints).length > 0) {
+                        toast.error('💡 მინიშნება ხელმისაწვდომია!');
+                        setShowHint(true);
+                    }
+                    return next;
+                });
             }
         } catch (err: any) {
             toast.error(err.response?.data?.error || 'შეცდომა კოდის გაგზავნისას.');
@@ -450,7 +467,7 @@ export default function LessonPage() {
                             ⚡ {lesson.xp_reward} XP
                         </span>
                         <span className="hidden sm:inline px-2.5 py-1 bg-primary-500/10 text-primary-400 text-xs font-bold rounded-lg border border-primary-500/20">
-                            {lesson.content_type === 'theory' ? '📖 Theory' : lesson.content_type === 'quiz' ? '📝 Quiz' : '💻 Practice'}
+                            {isTheoryOnly ? '📖 თეორია' : lesson.content_type === 'quiz' ? '📝 ქვიზი' : '💻 პრაქტიკა'}
                         </span>
                     </div>
                 </div>
@@ -477,341 +494,378 @@ export default function LessonPage() {
 
             {/* ══ MAIN CONTENT ══ */}
             <div className="flex-1 overflow-hidden">
-                <div className="h-full flex flex-col lg:flex-row">
+                <PanelGroup autoSaveId="lesson-layout" direction={isDesktop ? "horizontal" : "vertical"} className="h-full w-full">
 
                     {/* ▌COLUMN 1 — Theory ▌ */}
-                    <div className={`w-full lg:w-[36%] xl:w-[33%] overflow-hidden flex flex-col border-r border-dark-800/60 ${mobileTab !== 'theory' ? 'hidden lg:flex' : 'flex'}`}>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-7 bg-dark-950/20">
-                            <div className="max-w-2xl mx-auto">
-                                {lesson.content
-                                    ? renderContent(fixTypos(lesson.content))
-                                    : <div className="flex flex-col items-center justify-center h-full py-16 text-dark-600">
-                                        <HiBookOpen className="w-10 h-10 mb-3 opacity-30" />
-                                        <p className="text-sm">ამ ლექციაში თეორიული მასალა არ არის.</p>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-
-                        {/* ── Theory pane Next/Prev nav bar ── */}
-                        <div className="shrink-0 border-t border-dark-800 px-4 py-3 bg-dark-900/60 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                                <Link to={`/courses/${courseSlug}`}
-                                    className="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-dark-400 hover:text-white transition-all border border-dark-700 flex items-center gap-1.5 text-xs font-bold">
-                                    <HiArrowLeft className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline">კურსი</span>
-                                </Link>
-                                {navigation?.prev && (
-                                    <Link to={`/lesson/${courseSlug}/${navigation.prev.slug}`}
-                                        className="px-3 py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-white transition-all border border-dark-700 flex items-center gap-1.5 text-xs font-bold">
-                                        <HiArrowLeft className="w-3.5 h-3.5" /> წინა
-                                    </Link>
-                                )}
+                    {(!isDesktop ? mobileTab === 'theory' : true) && (
+                        <Panel id="theory" defaultSize={33} minSize={20} className="w-full h-full overflow-hidden flex flex-col border-r border-dark-800/60 bg-dark-950">
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-7 bg-dark-950/20">
+                                <div className="max-w-2xl mx-auto">
+                                    {lesson.content
+                                        ? renderContent(fixTypos(lesson.content))
+                                        : <div className="flex flex-col items-center justify-center h-full py-16 text-dark-600">
+                                            <HiBookOpen className="w-10 h-10 mb-3 opacity-30" />
+                                            <p className="text-sm">ამ ლექციაში თეორიული მასალა არ არის.</p>
+                                        </div>
+                                    }
+                                </div>
                             </div>
 
-                            {isTheoryOnly && (
-                                navigation?.next ? (
-                                    <Link to={`/lesson/${courseSlug}/${navigation.next.slug}`}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
-                                            ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-600/20'
-                                            : 'bg-dark-800 text-dark-600 opacity-50 pointer-events-none'
-                                            }`}>
-                                        შემდეგი <HiArrowRight className="w-3.5 h-3.5" />
-                                    </Link>
-                                ) : (
+                            {/* ── Theory pane Next/Prev nav bar ── */}
+                            <div className="shrink-0 border-t border-dark-800 px-4 py-3 bg-dark-900/60 flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2">
                                     <Link to={`/courses/${courseSlug}`}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
-                                            ? 'bg-accent-600 hover:bg-accent-500 text-white shadow-lg'
-                                            : 'bg-dark-800 text-dark-600 opacity-50 pointer-events-none'
-                                            }`}>
-                                        კურსი დასრულდა 🎉
-                                    </Link>
-                                )
-                            )}
-                        </div>
-                    </div>
-
-                    <div className={`w-full lg:w-[36%] xl:w-[34%] overflow-hidden flex flex-col border-r border-dark-800/60 bg-dark-900/10 ${mobileTab !== 'editor' ? 'hidden lg:flex' : 'flex'}`}>
-                        {/* Editor Toolbar */}
-                        <div className="flex items-center gap-1.5 px-3 py-2 border-b border-dark-800 bg-dark-900/80 shrink-0">
-                            <span className="text-xs text-dark-500 font-mono font-bold uppercase tracking-wider flex-1 flex items-center gap-1.5">
-                                <HiCode className="w-3.5 h-3.5 text-accent-500" />
-                                {lang.toUpperCase()} Editor
-                            </span>
-                            {/* Copy */}
-                            <button onClick={handleCopy} title="კოდის კოპირება"
-                                className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
-                                {copied ? <><HiCheck className="w-3.5 h-3.5" />Copied</> : <HiClipboard className="w-3.5 h-3.5" />}
-                            </button>
-                            {/* Reset */}
-                            <button onClick={handleReset} title="თავიდან"
-                                className="p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700 transition-all">
-                                <HiRefresh className="w-3.5 h-3.5" />
-                            </button>
-                            {/* Hint */}
-                            {hints.length > 0 && (
-                                <button onClick={() => setShowHint(v => !v)} title="მინიშნება"
-                                    className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-xs font-bold ${showHint ? 'bg-amber-500/20 text-amber-400' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
-                                    <HiLightBulb className="w-3.5 h-3.5" />
-                                    {showHint ? 'Hide' : 'Hint'}
-                                </button>
-                            )}
-                            {/* Auto-run toggle */}
-                            <button onClick={() => setAutoRun(v => !v)} title="Auto-run"
-                                className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${autoRun ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' : 'text-dark-600 hover:text-dark-400 hover:bg-dark-800'}`}>
-                                Auto
-                            </button>
-                        </div>
-
-                        {/* Hint */}
-                        {showHint && hints.length > 0 && (
-                            <div className="px-3 pt-2 shrink-0 animate-slide-down">
-                                <div className="flex items-start gap-2 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
-                                    <HiLightBulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                                    <p className="text-amber-300 text-xs leading-relaxed">{hints[0]}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {lesson.challenge_text && (
-                            <div className="px-3 pt-2 shrink-0">
-                                <div className="bg-primary-500/5 border border-primary-500/20 rounded-xl overflow-hidden">
-                                    <div className="flex items-center gap-2 px-3 py-2 border-b border-primary-500/20 bg-primary-500/10">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
-                                        <span className="text-primary-400 font-black text-[10px] uppercase tracking-widest">დავალება</span>
-                                    </div>
-                                    <div className="p-3 text-sm leading-relaxed text-dark-200 [&>p]:mb-2 [&>p]:last:mb-0">
-                                        {renderContent(fixTypos(lesson.challenge_text))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Code Editor */}
-                        <div className="flex-1 overflow-hidden p-3 pb-0 flex flex-col gap-2 min-h-0">
-                            <div className="flex-1 rounded-xl overflow-hidden border border-dark-700/50 shadow-xl min-h-0">
-                                <CodeEditor value={code} onChange={setCode} language={lang} height="100%" />
-                            </div>
-
-                            {/* Action Buttons */}
-                            <div className="flex items-center gap-2 pb-3 shrink-0">
-                                {/* Run */}
-                                <button onClick={handleRun}
-                                    className="flex items-center gap-1.5 px-3 py-2 bg-dark-800 hover:bg-dark-700 text-emerald-400 hover:text-emerald-300 rounded-xl text-xs font-bold transition-all border border-dark-700 hover:border-emerald-500/30">
-                                    <HiPlay className="w-3.5 h-3.5" /> გაშვება
-                                </button>
-
-                                {/* Submit */}
-                                {!isTheoryOnly && (
-                                    <button onClick={handleSubmit} disabled={isSubmitting}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${result?.passed
-                                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 cursor-default'
-                                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-60'}`}>
-                                        {isSubmitting ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>მოწმდება...</span></>
-                                            : result?.passed ? <><HiCheck className="w-3.5 h-3.5" /> შემოწმებულია</>
-                                                : <><HiCheck className="w-3.5 h-3.5" /> შემოწმება</>}
-                                    </button>
-                                )}
-
-                                {/* Prev */}
-                                {navigation?.prev && (
-                                    <Link to={`/lesson/${courseSlug}/${navigation.prev.slug}`}
-                                        className="p-2 bg-dark-800 hover:bg-dark-700 text-dark-400 hover:text-white rounded-xl transition-all border border-dark-700">
+                                        className="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-dark-400 hover:text-white transition-all border border-dark-700 flex items-center gap-1.5 text-xs font-bold">
                                         <HiArrowLeft className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">კურსი</span>
                                     </Link>
-                                )}
+                                    {navigation?.prev && (
+                                        <Link to={`/lesson/${courseSlug}/${navigation.prev.slug}`}
+                                            className="px-3 py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-white transition-all border border-dark-700 flex items-center gap-1.5 text-xs font-bold">
+                                            <HiArrowLeft className="w-3.5 h-3.5" /> წინა
+                                        </Link>
+                                    )}
+                                </div>
 
-                                {/* Next (only if theory-only or not passed yet to allow manual skip in dev? No, keep it clean for users) */}
                                 {isTheoryOnly && (
                                     navigation?.next ? (
                                         <Link to={`/lesson/${courseSlug}/${navigation.next.slug}`}
-                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
-                                                ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-md shadow-primary-600/20'
-                                                : 'bg-dark-800 text-dark-600 pointer-events-none opacity-50'}`}>
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
+                                                ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-lg shadow-primary-600/20'
+                                                : 'bg-dark-800 text-dark-600 opacity-50 pointer-events-none'
+                                                }`}>
                                             შემდეგი <HiArrowRight className="w-3.5 h-3.5" />
                                         </Link>
                                     ) : (
                                         <Link to={`/courses/${courseSlug}`}
-                                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
-                                                ? 'bg-accent-600 hover:bg-accent-500 text-white shadow-md'
-                                                : 'bg-dark-800 text-dark-600 pointer-events-none opacity-50'}`}>
-                                            დასრულება 🎉
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
+                                                ? 'bg-accent-600 hover:bg-accent-500 text-white shadow-lg'
+                                                : 'bg-dark-800 text-dark-600 opacity-50 pointer-events-none'
+                                                }`}>
+                                            კურსი დასრულდა 🎉
                                         </Link>
                                     )
                                 )}
                             </div>
-                        </div>
-                    </div>
+                        </Panel>
+                    )}
 
-                    {/* ▌COLUMN 3 — Preview / Console / Tests ▌ */}
-                    <div className={`w-full lg:flex-1 overflow-hidden flex flex-col bg-dark-950 ${mobileTab !== 'output' ? 'hidden lg:flex' : 'flex'}`}>
-                        {/* Right Pane Tabs */}
-                        <div className="flex border-b border-dark-800 bg-dark-900 shrink-0">
-                            {rightTabs.map(tab => (
-                                <button key={tab.id} onClick={() => setRightTab(tab.id)}
-                                    className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold transition-all relative ${rightTab === tab.id ? 'text-white border-b-2 border-primary-500 bg-dark-800/50' : 'text-dark-500 hover:text-dark-300 hover:bg-dark-800/30'}`}>
-                                    {tab.icon}
-                                    {tab.label}
-                                    {tab.badge !== undefined && tab.badge !== 0 && (
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${typeof tab.badge === 'string' ? (tab.badge === '✓' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400') : 'bg-red-500 text-white'}`}>
-                                            {tab.badge}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                            {/* Refresh preview button */}
-                            {rightTab === 'preview' && (
-                                <button onClick={handleRun} className="ml-auto px-3 text-dark-500 hover:text-white transition-colors">
-                                    <HiRefresh className="w-3.5 h-3.5" />
-                                </button>
+                    {!isTheoryOnly && (!isDesktop ? mobileTab === 'editor' : true) && (
+                        <>
+                            {isDesktop && (
+                                <PanelResizeHandle className="w-1.5 bg-dark-800 hover:bg-primary-500 transition-colors cursor-col-resize z-40 flex items-center justify-center border-x border-dark-900">
+                                    <div className="w-0.5 h-8 bg-dark-600 rounded-full" />
+                                </PanelResizeHandle>
                             )}
-                        </div>
-
-                        {/* Preview Tab */}
-                        {rightTab === 'preview' && (
-                            <div className="flex-1 relative overflow-hidden">
-                                {previewSrc ? (
-                                    <iframe
-                                        ref={iframeRef}
-                                        key={previewKey}
-                                        srcDoc={previewSrc}
-                                        sandbox="allow-scripts allow-same-origin allow-forms"
-                                        className="w-full h-full border-0 bg-white"
-                                        title="Live Preview"
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-dark-600">
-                                        <HiEye className="w-10 h-10 mb-3 opacity-20" />
-                                        <p className="text-sm">კოდი ჯერ არ არის გაშვებული</p>
-                                        <button onClick={handleRun} className="mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                                            <HiPlay className="w-3.5 h-3.5" /> გაშვება
+                            <Panel id="editor" defaultSize={34} minSize={20} className="w-full h-full overflow-hidden flex flex-col border-r border-dark-800/60 bg-dark-900/10 relative">
+                                {/* Editor Toolbar */}
+                                <div className="flex items-center gap-1.5 px-3 py-2 border-b border-dark-800 bg-dark-900/80 shrink-0">
+                                    <span className="text-xs text-dark-500 font-mono font-bold uppercase tracking-wider flex-1 flex items-center gap-1.5">
+                                        <HiCode className="w-3.5 h-3.5 text-accent-500" />
+                                        {lang.toUpperCase()} Editor
+                                    </span>
+                                    {/* Copy */}
+                                    <button onClick={handleCopy} title="კოდის კოპირება"
+                                        className={`p-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+                                        {copied ? <><HiCheck className="w-3.5 h-3.5" />Copied</> : <HiClipboard className="w-3.5 h-3.5" />}
+                                    </button>
+                                    {/* Reset */}
+                                    <button onClick={handleReset} title="თავიდან"
+                                        className="p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700 transition-all">
+                                        <HiRefresh className="w-3.5 h-3.5" />
+                                    </button>
+                                    {/* Hint */}
+                                    {hints.length > 0 && (
+                                        <button onClick={() => setShowHint(v => !v)} title="მინიშნება"
+                                            className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-xs font-bold ${showHint ? 'bg-amber-500/20 text-amber-400' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+                                            <HiLightBulb className="w-3.5 h-3.5" />
+                                            {showHint ? 'Hide' : 'Hint'}
                                         </button>
+                                    )}
+                                    {/* Auto-run toggle */}
+                                    <button onClick={() => setAutoRun(v => !v)} title="Auto-run"
+                                        className={`px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${autoRun ? 'bg-primary-500/20 text-primary-400 border border-primary-500/30' : 'text-dark-600 hover:text-dark-400 hover:bg-dark-800'}`}>
+                                        Auto
+                                    </button>
+                                </div>
+
+                                {/* Hint */}
+                                {showHint && hints.length > 0 && (
+                                    <div className="px-3 pt-2 shrink-0 animate-slide-down">
+                                        <div className="flex items-start gap-2 bg-amber-500/5 border border-amber-500/20 rounded-xl p-3">
+                                            <HiLightBulb className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                            <p className="text-amber-300 text-xs leading-relaxed">{hints[0]}</p>
+                                        </div>
                                     </div>
                                 )}
-                            </div>
-                        )}
 
-                        {/* Console Tab */}
-                        {rightTab === 'console' && (
-                            <div className="flex-1 overflow-hidden">
-                                <ConsoleOutput
-                                    lines={consoleLines}
-                                    onClear={() => setConsoleLines([])}
-                                    onExplain={handleExplainAI}
-                                    isExplaining={isExplainingAI}
-                                    explanation={explanation}
-                                    onCloseExplanation={() => setExplanation(null)}
-                                />
-                            </div>
-                        )}
-
-                        {/* Tests Tab */}
-                        {rightTab === 'tests' && (
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
-                                {!result ? (
-                                    <div className="flex flex-col items-center justify-center h-full text-dark-600 py-16">
-                                        <HiBeaker className="w-10 h-10 mb-3 opacity-20" />
-                                        <p className="text-sm">კოდი გაგზავნის შემდეგ tests გამოჩნდება</p>
-                                        {!isTheoryOnly && (
-                                            <button onClick={handleSubmit} disabled={isSubmitting}
-                                                className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                                                <HiCheck className="w-3.5 h-3.5" /> კოდის შემოწმება
-                                            </button>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Result banner */}
-                                        <div className={`rounded-2xl p-4 border-2 ${result.passed ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/40 bg-red-500/5'}`}>
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${result.passed ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
-                                                    {result.passed ? '✨' : '⚠️'}
-                                                </div>
-                                                <div>
-                                                    <div className={`font-black text-lg ${result.passed ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                        {result.passed ? 'შესანიშნავია!' : 'სცადეთ ხელახლა'}
-                                                    </div>
-                                                    <div className="flex items-center gap-3 text-xs text-dark-400">
-                                                        <span>სიზუსტე: <strong className="text-white">{result.score}%</strong></span>
-                                                        {result.xpEarned > 0 && <span className="text-amber-400 font-bold">⚡ +{result.xpEarned} XP</span>}
-                                                    </div>
-                                                </div>
+                                {lesson.challenge_text && (
+                                    <div className="px-3 pt-2 shrink-0">
+                                        <div className="bg-primary-500/5 border border-primary-500/20 rounded-xl overflow-hidden">
+                                            <div className="flex items-center gap-2 px-3 py-2 border-b border-primary-500/20 bg-primary-500/10">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary-400 animate-pulse" />
+                                                <span className="text-primary-400 font-black text-[10px] uppercase tracking-widest">დავალება</span>
                                             </div>
-
-                                            {/* Score bar */}
-                                            <div className="progress-bar h-1.5 mt-3">
-                                                <div className={`h-full rounded-full transition-all duration-1000 ${result.passed ? 'bg-emerald-500' : 'bg-red-500'}`} style={{ width: `${result.score}%` }} />
+                                            <div className="p-3 text-sm leading-relaxed text-dark-200 [&>p]:mb-2 [&>p]:last:mb-0">
+                                                {renderContent(fixTypos(lesson.challenge_text))}
                                             </div>
                                         </div>
+                                    </div>
+                                )}
 
-                                        {/* AI Smart Hint Section */}
-                                        {!result.passed && (
-                                            <div className="card p-4 border border-primary-500/20 bg-primary-500/5 overflow-hidden">
-                                                <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-2 text-primary-400 font-bold text-xs uppercase tracking-wider">
-                                                        <span className="text-lg">✨</span>
-                                                        Smart Hint
-                                                    </div>
-                                                    {!aiHint && !isAskingAI && (
-                                                        <button
-                                                            onClick={handleAskAI}
-                                                            className="text-[10px] bg-primary-600 hover:bg-primary-500 text-white px-2.5 py-1 rounded-lg font-bold transition-all shadow-sm"
-                                                        >
-                                                            მინიშნება
-                                                        </button>
-                                                    )}
-                                                </div>
+                                {/* Code Editor */}
+                                <div className="flex-1 overflow-hidden p-3 pb-0 flex flex-col gap-2 min-h-0">
+                                    <div className="flex-1 rounded-xl overflow-hidden border border-dark-700/50 shadow-xl min-h-0">
+                                        <CodeEditor value={code} onChange={setCode} language={lang} height="100%" />
+                                    </div>
 
-                                                {isAskingAI && (
-                                                    <div className="flex items-center gap-2 py-2">
-                                                        <div className="w-4 h-4 border-2 border-t-primary-500/30 border-primary-500 rounded-full animate-spin" />
-                                                        <span className="text-xs text-dark-400 animate-pulse">AI აანალიზებს თქვენს კოდს...</span>
-                                                    </div>
-                                                )}
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-2 pb-3 shrink-0">
+                                        {/* Run */}
+                                        <button onClick={handleRun}
+                                            className="flex items-center gap-1.5 px-3 py-2 bg-dark-800 hover:bg-dark-700 text-emerald-400 hover:text-emerald-300 rounded-xl text-xs font-bold transition-all border border-dark-700 hover:border-emerald-500/30">
+                                            <HiPlay className="w-3.5 h-3.5" /> გაშვება
+                                        </button>
 
-                                                {aiHint && (
-                                                    <div className="text-sm text-dark-200 leading-relaxed animate-fade-in bg-dark-800/50 p-3 rounded-xl border border-dark-700">
-                                                        {aiHint}
-                                                        <button
-                                                            onClick={handleAskAI}
-                                                            className="block mt-2 text-[10px] text-primary-400 hover:text-primary-300 transition-colors uppercase font-bold"
-                                                        >
-                                                            ახალი მინიშნება ↺
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
+                                        {/* Submit */}
+                                        {!isTheoryOnly && (
+                                            <button onClick={handleSubmit} disabled={isSubmitting}
+                                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${result?.passed
+                                                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 cursor-default'
+                                                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/30 active:scale-[0.98] disabled:opacity-60'}`}>
+                                                {isSubmitting ? <><div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /><span>მოწმდება...</span></>
+                                                    : result?.passed ? <><HiCheck className="w-3.5 h-3.5" /> შემოწმებულია</>
+                                                        : <><HiCheck className="w-3.5 h-3.5" /> შემოწმება</>}
+                                            </button>
                                         )}
 
-                                        {/* Test cases */}
-                                        {result.testResults && result.testResults.length > 0 && (
-                                            <div className="space-y-2">
-                                                <p className="text-xs text-dark-500 font-bold uppercase tracking-wider">ტესტ-შემოწმებები</p>
-                                                {result.testResults.map((t: any, i: number) => (
-                                                    <div key={i} className={`flex items-center gap-3 p-3 rounded-xl border ${t.passed ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                                                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${t.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-                                                            {t.passed ? '✓' : '✗'}
-                                                        </div>
-                                                        <span className={`text-sm flex-1 ${t.passed ? 'text-dark-200' : 'text-red-300'}`}>{t.name}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {/* Next action */}
-                                        {result.passed && navigation?.next && (
-                                            <Link to={`/lesson/${courseSlug}/${navigation.next.slug}`}
-                                                className="flex items-center justify-center gap-2 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary-600/20 animate-pulse-primary">
-                                                შემდეგი ლექცია <HiArrowRight className="w-4 h-4" />
+                                        {/* Prev */}
+                                        {navigation?.prev && (
+                                            <Link to={`/lesson/${courseSlug}/${navigation.prev.slug}`}
+                                                className="p-2 bg-dark-800 hover:bg-dark-700 text-dark-400 hover:text-white rounded-xl transition-all border border-dark-700">
+                                                <HiArrowLeft className="w-3.5 h-3.5" />
                                             </Link>
                                         )}
-                                    </>
-                                )}
-                            </div>
-                        )}
-                    </div>
 
-                </div>
+                                        {/* Next (only if theory-only or not passed yet to allow manual skip in dev? No, keep it clean for users) */}
+                                        {isTheoryOnly && (
+                                            navigation?.next ? (
+                                                <Link to={`/lesson/${courseSlug}/${navigation.next.slug}`}
+                                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
+                                                        ? 'bg-primary-600 hover:bg-primary-500 text-white shadow-md shadow-primary-600/20'
+                                                        : 'bg-dark-800 text-dark-600 pointer-events-none opacity-50'}`}>
+                                                    შემდეგი <HiArrowRight className="w-3.5 h-3.5" />
+                                                </Link>
+                                            ) : (
+                                                <Link to={`/courses/${courseSlug}`}
+                                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${canGoNext
+                                                        ? 'bg-accent-600 hover:bg-accent-500 text-white shadow-md'
+                                                        : 'bg-dark-800 text-dark-600 pointer-events-none opacity-50'}`}>
+                                                    დასრულება 🎉
+                                                </Link>
+                                            )
+                                        )}
+                                    </div>
+                                </div>
+                            </Panel>
+                        </>
+                    )}
+
+                    {/* ▌COLUMN 3 — Preview / Console / Tests ▌ */}
+                    {!isTheoryOnly && (!isDesktop ? mobileTab === 'output' : true) && (
+                        <>
+                            {isDesktop && (
+                                <PanelResizeHandle className="w-1.5 bg-dark-800 hover:bg-primary-500 transition-colors cursor-col-resize z-40 flex items-center justify-center border-x border-dark-900">
+                                    <div className="w-0.5 h-8 bg-dark-600 rounded-full" />
+                                </PanelResizeHandle>
+                            )}
+                            <Panel id="output" defaultSize={33} minSize={20} className="w-full h-full overflow-hidden flex flex-col bg-dark-950">
+                                {/* Right Pane Tabs */}
+                                <div className="flex border-b border-dark-800 bg-dark-900 shrink-0">
+                                    {rightTabs.map(tab => (
+                                        <button key={tab.id} onClick={() => setRightTab(tab.id)}
+                                            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold transition-all relative ${rightTab === tab.id ? 'text-white border-b-2 border-primary-500 bg-dark-800/50' : 'text-dark-500 hover:text-dark-300 hover:bg-dark-800/30'}`}>
+                                            {tab.icon}
+                                            {tab.label}
+                                            {tab.badge !== undefined && tab.badge !== 0 && (
+                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-black ${typeof tab.badge === 'string' ? (tab.badge === '✓' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400') : 'bg-red-500 text-white'}`}>
+                                                    {tab.badge}
+                                                </span>
+                                            )}
+                                        </button>
+                                    ))}
+                                    {/* Refresh preview button */}
+                                    {rightTab === 'preview' && (
+                                        <button onClick={handleRun} className="ml-auto px-3 text-dark-500 hover:text-white transition-colors">
+                                            <HiRefresh className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Preview Tab */}
+                                {rightTab === 'preview' && (
+                                    <div className="flex-1 relative overflow-hidden">
+                                        {previewSrc ? (
+                                            <iframe
+                                                ref={iframeRef}
+                                                key={previewKey}
+                                                srcDoc={previewSrc}
+                                                sandbox="allow-scripts allow-same-origin allow-forms"
+                                                className="w-full h-full border-0 bg-white"
+                                                title="Live Preview"
+                                            />
+                                        ) : (
+                                            <div className="flex flex-col items-center justify-center h-full text-dark-600">
+                                                <HiEye className="w-10 h-10 mb-3 opacity-20" />
+                                                <p className="text-sm">კოდი ჯერ არ არის გაშვებული</p>
+                                                <button onClick={handleRun} className="mt-4 px-4 py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                                    <HiPlay className="w-3.5 h-3.5" /> გაშვება
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Console Tab */}
+                                {rightTab === 'console' && (
+                                    <div className="flex-1 overflow-hidden">
+                                        <ConsoleOutput
+                                            lines={consoleLines}
+                                            onClear={() => setConsoleLines([])}
+                                            onExplain={handleExplainAI}
+                                            isExplaining={isExplainingAI}
+                                            explanation={explanation}
+                                            onCloseExplanation={() => setExplanation(null)}
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Tests Tab */}
+                                {rightTab === 'tests' && (
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                                        {!result ? (
+                                            <div className="flex flex-col items-center justify-center h-full text-dark-600 py-16">
+                                                <HiBeaker className="w-10 h-10 mb-3 opacity-20" />
+                                                <p className="text-sm">კოდი გაგზავნის შემდეგ tests გამოჩნდება</p>
+                                                {!isTheoryOnly && (
+                                                    <button onClick={handleSubmit} disabled={isSubmitting}
+                                                        className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                                                        <HiCheck className="w-3.5 h-3.5" /> კოდის შემოწმება
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {/* Result banner */}
+                                                <div className={`rounded-2xl p-4 border-2 ${result.passed ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-red-500/40 bg-red-500/5'}`}>
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl ${result.passed ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
+                                                            {result.passed ? '✨' : '⚠️'}
+                                                        </div>
+                                                        <div>
+                                                            <div className={`font-black text-lg ${result.passed ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                                {result.passed ? 'შესანიშნავია!' : 'სცადეთ ხელახლა'}
+                                                            </div>
+                                                            <div className="flex items-center gap-3 text-xs text-dark-400">
+                                                                <span>სიზუსტე: <strong className="text-white">{result.score}%</strong></span>
+                                                                {result.xpEarned > 0 && <span className="text-amber-400 font-bold">⚡ +{result.xpEarned} XP</span>}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Score bar */}
+                                                    <div className="progress-bar h-1.5 mt-3">
+                                                        <div className={`h-full rounded-full transition-all duration-1000 ${result.passed ? 'bg-emerald-500' : 'bg-red-500'}`} style={{ width: `${result.score}%` }} />
+                                                    </div>
+                                                </div>
+
+                                                {/* AI Smart Hint Section */}
+                                                {!result.passed && (
+                                                    <div className="card p-4 border border-primary-500/20 bg-primary-500/5 overflow-hidden">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <div className="flex items-center gap-2 text-primary-400 font-bold text-xs uppercase tracking-wider">
+                                                                <span className="text-lg">✨</span>
+                                                                Smart Hint
+                                                            </div>
+                                                            {!aiHint && !isAskingAI && (
+                                                                <button
+                                                                    onClick={handleAskAI}
+                                                                    className="text-[10px] bg-primary-600 hover:bg-primary-500 text-white px-2.5 py-1 rounded-lg font-bold transition-all shadow-sm"
+                                                                >
+                                                                    მინიშნება
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {isAskingAI && (
+                                                            <div className="flex items-center gap-2 py-2">
+                                                                <div className="w-4 h-4 border-2 border-t-primary-500/30 border-primary-500 rounded-full animate-spin" />
+                                                                <span className="text-xs text-dark-400 animate-pulse">AI აანალიზებს თქვენს კოდს...</span>
+                                                            </div>
+                                                        )}
+
+                                                        {aiHint && (
+                                                            <div className="text-sm text-dark-200 leading-relaxed animate-fade-in bg-dark-800/50 p-3 rounded-xl border border-dark-700">
+                                                                {aiHint}
+                                                                <button
+                                                                    onClick={handleAskAI}
+                                                                    className="block mt-2 text-[10px] text-primary-400 hover:text-primary-300 transition-colors uppercase font-bold"
+                                                                >
+                                                                    ახალი მინიშნება ↺
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Test cases */}
+                                                {result.testResults && result.testResults.length > 0 && (
+                                                    <div className="space-y-2">
+                                                        <p className="text-xs text-dark-500 font-bold uppercase tracking-wider">ტესტ-შემოწმებები</p>
+                                                        {result.testResults.map((t: any, i: number) => (
+                                                            <div key={i} className={`flex flex-col gap-2 p-3 rounded-xl border ${t.passed ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${t.passed ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                                        {t.passed ? '✓' : '✗'}
+                                                                    </div>
+                                                                    <span className={`text-sm flex-1 ${t.passed ? 'text-dark-200' : 'text-red-300'}`}>{t.name}</span>
+
+                                                                    {!t.passed && (
+                                                                        <button
+                                                                            onClick={() => handleExplainAI(`Test Failed: ${t.name}.`)}
+                                                                            disabled={isExplainingAI}
+                                                                            className="text-[10px] px-2 py-1 bg-primary-500/10 hover:bg-primary-500/20 text-primary-400 rounded transition-all font-bold uppercase tracking-wider whitespace-nowrap"
+                                                                        >
+                                                                            რატომ?
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                                {!t.passed && t.hint && (
+                                                                    <div className="text-[11px] text-amber-400/90 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 ml-9">
+                                                                        💡 {t.hint}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Next action */}
+                                                {result.passed && navigation?.next && (
+                                                    <Link to={`/lesson/${courseSlug}/${navigation.next.slug}`}
+                                                        className="flex items-center justify-center gap-2 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary-600/20 animate-pulse-primary">
+                                                        შემდეგი ლექცია <HiArrowRight className="w-4 h-4" />
+                                                    </Link>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                            </Panel>
+                        </>
+                    )}
+
+                </PanelGroup>
             </div>
         </div>
     );

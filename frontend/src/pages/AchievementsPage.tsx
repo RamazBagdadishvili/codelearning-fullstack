@@ -79,20 +79,36 @@ export default function AchievementsPage() {
                 <div>
                     <h2 className="text-xl font-bold text-white mb-4">🔒 მოუპოვებელი ({notEarned.length})</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {notEarned.map(a => (
-                            <div key={a.id} className="card p-5 opacity-60">
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-14 h-14 rounded-xl bg-dark-800 flex items-center justify-center text-3xl grayscale">
-                                        {a.badge_icon}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-dark-300 font-semibold">{a.title}</h3>
-                                        <p className="text-dark-500 text-sm">{a.description}</p>
-                                        <span className="text-dark-500 text-sm">⚡ +{a.xp_reward} XP</span>
+                        {notEarned.map(a => {
+                            const progress = a.criteria_value ? Math.min(100, Math.round(((a.current_value || 0) / a.criteria_value) * 100)) : 0;
+                            return (
+                                <div key={a.id} className="card p-5 opacity-60 hover:opacity-100 transition-opacity group">
+                                    <div className="flex flex-col space-y-4">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-14 h-14 rounded-xl bg-dark-800 flex items-center justify-center text-3xl grayscale group-hover:grayscale-0 transition-all">
+                                                {a.badge_icon || a.icon}
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="text-dark-300 font-semibold group-hover:text-white transition-colors">{a.title || a.name}</h3>
+                                                <p className="text-dark-500 text-sm mt-0.5">{a.description}</p>
+                                                <span className="text-dark-500 text-xs font-bold mt-1 inline-block">⚡ +{a.xp_reward} XP</span>
+                                            </div>
+                                        </div>
+                                        {a.criteria_value > 0 && (
+                                            <div className="w-full">
+                                                <div className="flex justify-between text-[10px] text-dark-500 font-bold mb-1.5 uppercase tracking-wider">
+                                                    <span>მიმდინარე</span>
+                                                    <span>{a.current_value || 0} / {a.criteria_value}</span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-dark-800 rounded-full overflow-hidden">
+                                                    <div className="h-full bg-dark-500 group-hover:bg-primary-500 transition-all duration-500 rounded-full" style={{ width: `${progress}%` }}></div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             )}

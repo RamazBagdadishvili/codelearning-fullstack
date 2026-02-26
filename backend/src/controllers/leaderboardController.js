@@ -8,17 +8,29 @@ const { query } = require('../config/db');
 // GET /api/leaderboard
 const getLeaderboard = async (req, res, next) => {
     try {
-        const { limit = 50, offset = 0 } = req.query;
+        const { limit = 50, offset = 0, timeframe = 'all' } = req.query;
+
+        let dateCondition = '';
+        if (timeframe === 'week') dateCondition = "AND up.completed_at >= NOW() - INTERVAL '7 days'";
+        if (timeframe === 'month') dateCondition = "AND up.completed_at >= NOW() - INTERVAL '30 days'";
+
+        const xpQuery = timeframe === 'all'
+            ? 'u.xp_points'
+            : `COALESCE((SELECT SUM(l.xp_reward) FROM user_progress up JOIN lessons l ON l.id = up.lesson_id WHERE up.user_id = u.id AND up.status = 'completed' ${dateCondition}), 0)`;
 
         const result = await query(
-            `SELECT u.id, u.username, u.full_name, u.avatar_url, u.xp_points, u.level, u.streak_days,
-              (SELECT COUNT(*) FROM user_progress WHERE user_id = u.id AND status = 'completed') as completed_lessons,
-              (SELECT COUNT(*) FROM user_achievements WHERE user_id = u.id) as achievements_count,
-              ROW_NUMBER() OVER (ORDER BY u.xp_points DESC) as rank
-       FROM users u
-       WHERE u.is_active = true
-       ORDER BY u.xp_points DESC
-       LIMIT $1 OFFSET $2`,
+            `SELECT * FROM (
+                SELECT u.id, u.username, u.full_name, u.avatar_url, u.level, u.streak_days,
+                  ${xpQuery} as xp_points,
+                  (SELECT COUNT(*) FROM user_progress up WHERE up.user_id = u.id AND up.status = 'completed' ${dateCondition}) as completed_lessons,
+                  (SELECT COUNT(*) FROM user_achievements WHERE user_id = u.id) as achievements_count,
+                  ROW_NUMBER() OVER (ORDER BY ${xpQuery} DESC, u.id ASC) as rank
+                FROM users u
+                WHERE u.is_active = true
+            ) as ranked_users
+            ${timeframe !== 'all' ? 'WHERE xp_points > 0' : ''}
+            ORDER BY rank ASC
+            LIMIT $1 OFFSET $2`,
             [parseInt(limit), parseInt(offset)]
         );
 
@@ -27,9 +39,9 @@ const getLeaderboard = async (req, res, next) => {
         if (req.user) {
             const rankResult = await query(
                 `SELECT rank FROM (
-           SELECT id, ROW_NUMBER() OVER (ORDER BY xp_points DESC) as rank
-           FROM users WHERE is_active = true
-         ) ranked WHERE id = $1`,
+                   SELECT u.id, ROW_NUMBER() OVER (ORDER BY ${xpQuery} DESC, u.id ASC) as rank
+                   FROM users u WHERE u.is_active = true
+                 ) as ranked WHERE id = $1`,
                 [req.user.id]
             );
             userRank = rankResult.rows[0]?.rank || null;

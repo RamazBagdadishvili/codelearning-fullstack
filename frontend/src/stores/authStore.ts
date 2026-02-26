@@ -17,6 +17,7 @@ interface User {
         totalAchievements: number;
         totalSubmissions: number;
     };
+    enrollments?: any[];
 }
 
 interface AuthState {

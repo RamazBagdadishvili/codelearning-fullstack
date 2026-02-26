@@ -5,6 +5,7 @@ import api from '../api/axios';
 import { useConfirm } from '../hooks/useConfirm';
 import toast from 'react-hot-toast';
 import { formatXP } from '../utils/formatters';
+import ActivityHeatmap from '../components/ActivityHeatmap';
 
 export default function ProfilePage() {
     const { user, fetchProfile } = useAuthStore();
@@ -146,6 +147,32 @@ export default function ProfilePage() {
                 </div>
             </div>
 
+            {/* აქტივობა */}
+            <ActivityHeatmap data={progress?.heatmap || []} />
+
+            {/* ბოლო მიღწევები */}
+            {progress?.recentBadges && progress.recentBadges.length > 0 && (
+                <div className="card p-6 mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-bold text-white">ბოლო მიღწევები</h2>
+                        <span className="text-xs font-bold text-primary-400 bg-primary-500/10 px-2 py-1 rounded">უახლესი {progress.recentBadges.length}</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {progress.recentBadges.map((badge: any) => (
+                            <div key={badge.id} className="flex items-center space-x-4 bg-dark-800/50 hover:bg-dark-800 transition-colors cursor-pointer p-4 rounded-xl border border-dark-700/50 group" title={badge.description}>
+                                <span className="text-4xl filter drop-shadow-md group-hover:scale-110 transition-transform">{badge.icon}</span>
+                                <div>
+                                    <h4 className="text-white font-bold text-sm tracking-wide group-hover:text-primary-400 transition-colors">{badge.name}</h4>
+                                    <span className="text-[10px] uppercase font-bold text-dark-500 mt-1 block">
+                                        {new Date(badge.earned_at).toLocaleDateString('ka-GE')}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Level პროგრესი */}
             <div className="card p-6 mb-8">
                 <h2 className="text-lg font-bold text-white mb-4">Level პროგრესი</h2>
@@ -157,11 +184,10 @@ export default function ProfilePage() {
                         {(() => {
                             const currentLevel = user?.level || 1;
                             const xp = user?.xpPoints || 0;
-                            const xpPerLevel = 100 * currentLevel;
-                            const currentLevelXpStart = 100 * (currentLevel * (currentLevel - 1)) / 2;
-                            const xpIntoLevel = xp - currentLevelXpStart;
-                            const progressPct = Math.min(100, Math.max(0, Math.round((xpIntoLevel / xpPerLevel) * 100)));
-                            const xpRemaining = Math.max(0, xpPerLevel - xpIntoLevel);
+                            const xpPerLevel = 100;
+                            const xpIntoLevel = xp % xpPerLevel;
+                            const progressPct = Math.round((xpIntoLevel / xpPerLevel) * 100);
+                            const xpRemaining = xpPerLevel - xpIntoLevel;
                             return (
                                 <>
                                     <div className="flex justify-between text-sm text-dark-400 mb-2">
@@ -182,7 +208,7 @@ export default function ProfilePage() {
             </div>
 
             {/* აქტიური კურსები */}
-            {progress?.courses && progress.courses.length > 0 && (
+            {progress?.courses && progress.courses.length > 0 ? (
                 <div>
                     <h2 className="text-lg font-bold text-white mb-4">ჩემი კურსები</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -200,10 +226,11 @@ export default function ProfilePage() {
                                             // Optional: toast error
                                         }
                                     }}
-                                    className="absolute top-4 right-4 p-2 text-dark-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                    className="absolute top-4 right-4 p-2 text-dark-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all font-bold"
                                     title="კურსის ამოშლა"
+                                    aria-label="კურსის ამოშლა"
                                 >
-                                    🗑️
+                                    <HiX className="w-5 h-5" />
                                 </button>
                                 <div className="flex items-center space-x-3 mb-3">
                                     <span className="text-2xl">{course.icon}</span>
@@ -222,6 +249,15 @@ export default function ProfilePage() {
                             </div>
                         ))}
                     </div>
+                </div>
+            ) : (
+                <div className="card p-8 text-center border-dashed border-dark-700">
+                    <div className="text-6xl mb-4 opacity-30 mx-auto w-16 h-16 flex items-center justify-center">📚</div>
+                    <h3 className="text-xl font-bold text-white mb-2">კურსები ვერ მოიძებნა</h3>
+                    <p className="text-dark-400 mb-6">თქვენ ჯერ არცერთ კურსზე არ ხართ დარეგისტრირებული.</p>
+                    <a href="/courses" className="btn-primary inline-flex items-center gap-2">
+                        კურსების ნახვა <HiTrendingUp className="w-4 h-4" />
+                    </a>
                 </div>
             )}
             {ConfirmDialog}
