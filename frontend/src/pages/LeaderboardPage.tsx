@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
 import { useAuthStore } from '../stores/authStore';
+import { formatXP } from '../utils/formatters';
 
 export default function LeaderboardPage() {
     const [leaderboard, setLeaderboard] = useState<any[]>([]);
@@ -53,7 +54,7 @@ export default function LeaderboardPage() {
                                     {u.username?.charAt(0).toUpperCase()}
                                 </div>
                                 <p className="text-white font-semibold text-[10px] sm:text-sm mb-0.5 truncate w-full text-center">{u.username}</p>
-                                <p className="text-amber-400 text-[10px] sm:text-sm font-bold">⚡{u.xp_points}</p>
+                                <p className="text-amber-400 text-[10px] sm:text-sm font-bold" title={`${u.xp_points} XP`}>⚡{formatXP(u.xp_points)}</p>
                                 <div className={`${heights[i]} w-full mt-3 rounded-t-xl bg-gradient-to-t 
                   ${rank === 1 ? 'from-amber-600 to-amber-400' : rank === 2 ? 'from-slate-500 to-slate-300' : 'from-orange-700 to-orange-500'}
                   flex items-start justify-center pt-3`}>
@@ -93,7 +94,7 @@ export default function LeaderboardPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="p-4 text-right text-amber-400 font-bold">⚡ {u.xp_points}</td>
+                                    <td className="p-4 text-right text-amber-400 font-bold" title={`${u.xp_points} XP`}>⚡ {formatXP(u.xp_points)}</td>
                                     <td className="p-4 text-right text-primary-400 font-medium hidden sm:table-cell">Lv.{u.level}</td>
                                 </tr>
                             ))}

@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import CodeEditor from '../components/CodeEditor';
 import { useConfirm } from '../hooks/useConfirm';
+import { HiCog, HiPencil } from 'react-icons/hi';
 
 export default function AdminPage() {
     const { user } = useAuthStore();
@@ -1188,23 +1189,112 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                             {filteredUsers.map(u => {
                                 const rc = ROLE_CONFIG[u.role] || ROLE_CONFIG.student;
                                 return (
-                                    <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors ${!u.is_active ? 'opacity-50' : ''}`}>
-                                        {/* სახელი */}
-                                        <td className="p-4">
+                                    <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors ${u.role === 'admin' ? 'bg-amber-500/5' : ''} ${!u.is_active ? 'opacity-50' : ''}`}>
+                                        {/* Desktop-only columns */}
+                                        <td className="p-4 hidden sm:table-cell">
                                             <div className="flex items-center space-x-3">
-                                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                                                    {(u.username || '?').charAt(0).toUpperCase()}
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-dark-700 to-dark-800 flex items-center justify-center text-white font-bold border border-dark-600 shadow-inner">
+                                                    {u.username?.charAt(0).toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <div className="text-white font-medium text-sm">{u.username || 'მომხმარებელი'}</div>
+                                                    <div className="text-white font-medium flex items-center gap-2">
+                                                        {u.full_name || u.username}
+                                                        {u.role === 'admin' && <HiCog className="text-amber-500 w-3 h-3" />}
+                                                    </div>
                                                     <div className="text-dark-500 text-xs">{u.created_at ? new Date(u.created_at).toLocaleDateString('ka-GE') : 'N/A'}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        {/* ელ-ფოსტა */}
-                                        <td className="p-4 text-dark-400 text-sm hidden md:table-cell">{u.email}</td>
-                                        {/* როლი */}
-                                        <td className="p-4 text-center">
+                                        <td className="p-4 text-dark-400 text-sm hidden sm:table-cell">{u.email}</td>
+
+                                        {/* Mobile view as Card (within tr for table compatibility) */}
+                                        <td className="p-4 sm:hidden" colSpan={7}> {/* colSpan adjusted to cover all columns for mobile */}
+                                            <div className="flex flex-col space-y-3 p-3 bg-dark-800 rounded-lg border border-dark-700">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-white font-bold text-xs">{u.username?.charAt(0).toUpperCase()}</div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="text-white text-sm font-bold truncate">{u.full_name || u.username}</div>
+                                                        <div className="text-dark-500 text-[10px] truncate">{u.email}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-dark-500 text-[9px] uppercase font-bold">Role</label>
+                                                        <select value={u.role} onChange={e => handleRoleChange(u.id, e.target.value)}
+                                                            className={`text-[10px] w-full px-2 py-1 rounded border cursor-pointer bg-transparent font-medium transition-colors ${rc.bg} ${rc.color}`}>
+                                                            <option value="student" className="bg-dark-900 text-white">სტუდენტი</option>
+                                                            <option value="instructor" className="bg-dark-900 text-white">ინსტრუქტორი</option>
+                                                            <option value="admin" className="bg-dark-900 text-white">ადმინი</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-dark-500 text-[9px] uppercase font-bold text-center block">Level</label>
+                                                        <div className="flex justify-center">
+                                                            <input type="number" min="1" max="200" defaultValue={u.level}
+                                                                onBlur={(e) => { const val = parseInt(e.target.value); if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level); }}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        const val = parseInt((e.target as HTMLInputElement).value);
+                                                                        if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level);
+                                                                        (e.target as HTMLInputElement).blur();
+                                                                    }
+                                                                }}
+                                                                className="w-full text-center text-xs py-1 rounded bg-dark-900 border border-dark-700 text-primary-400 font-bold" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-dark-500 text-[9px] uppercase font-bold">XP</label>
+                                                        {editingXp === u.id ? (
+                                                            <div className="flex items-center space-x-1">
+                                                                <input type="number" value={xpValue} onChange={e => setXpValue(parseInt(e.target.value) || 0)}
+                                                                    className="w-full text-center text-xs py-1 rounded bg-dark-900 border border-primary-500/50 text-white" autoFocus />
+                                                                <button onClick={() => handleXpSave(u.id)} className="text-green-400 hover:text-green-300 text-xs font-bold">✓</button>
+                                                                <button onClick={() => setEditingXp(null)} className="text-dark-400 hover:text-white text-xs">✕</button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center justify-center space-x-1">
+                                                                <span className="text-amber-400 font-bold text-xs">⚡ {u.xp_points || 0}</span>
+                                                                <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
+                                                                    className="p-1 rounded-lg bg-dark-800 text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all">
+                                                                    <HiPencil className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-dark-500 text-[9px] uppercase font-bold text-center block">Status</label>
+                                                        <div className="flex justify-center">
+                                                            <span className={`inline-flex items-center text-[10px] px-2 py-0.5 rounded-full font-medium ${u.is_active ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
+                                                                <span className={`w-1 h-1 rounded-full mr-1 ${u.is_active ? 'bg-green-400' : 'bg-red-400'}`} />
+                                                                {u.is_active ? 'აქტიური' : 'დაბლოკილი'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-center space-x-1 mt-3">
+                                                    <button onClick={() => setManagingUser(u)}
+                                                        className="px-2 py-1 rounded-lg text-xs font-medium bg-dark-700 hover:bg-primary-500/20 text-primary-400 hover:text-primary-300 transition-colors"
+                                                        title="კურსების მართვა">
+                                                        📚
+                                                    </button>
+                                                    <button onClick={() => setConfirmAction({ type: 'toggle', user: u })}
+                                                        className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${u.is_active ? 'bg-dark-700 hover:bg-orange-500/20 text-orange-400 hover:text-orange-300' : 'bg-dark-700 hover:bg-green-500/20 text-green-400 hover:text-green-300'}`}
+                                                        title={u.is_active ? 'დაბლოკვა' : 'განბლოკვა'}>
+                                                        {u.is_active ? '🔓' : '🔒'}
+                                                    </button>
+                                                    <button onClick={() => setConfirmAction({ type: 'delete', user: u })}
+                                                        className="px-2 py-1 rounded-lg text-xs font-medium bg-dark-700 hover:bg-red-500/20 text-red-500 hover:text-red-400 transition-colors"
+                                                        title="წაშლა">
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        {/* Desktop-only role select */}
+                                        <td className="p-4 text-center hidden sm:table-cell">
                                             <select value={u.role} onChange={e => handleRoleChange(u.id, e.target.value)}
                                                 className={`text-xs px-2 py-1.5 rounded-lg border cursor-pointer bg-transparent font-medium transition-colors ${rc.bg} ${rc.color}`}>
                                                 <option value="student" className="bg-dark-900 text-white">📚 სტუდენტი</option>
@@ -1212,13 +1302,13 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                 <option value="admin" className="bg-dark-900 text-white">👑 ადმინი</option>
                                             </select>
                                         </td>
-                                        {/* Level */}
-                                        <td className="p-4 text-center">
+                                        {/* Desktop-only level */}
+                                        <td className="p-4 text-center hidden sm:table-cell">
                                             <div className="flex items-center justify-center">
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    max="50"
+                                                    max="200"
                                                     defaultValue={u.level}
                                                     onBlur={(e) => {
                                                         const val = parseInt(e.target.value);
@@ -1235,8 +1325,8 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                 />
                                             </div>
                                         </td>
-                                        {/* XP */}
-                                        <td className="p-4 text-center">
+                                        {/* XP - visible on both but styled differently */}
+                                        <td className="p-4 text-center hidden sm:table-cell">
                                             {editingXp === u.id ? (
                                                 <div className="flex items-center justify-center space-x-1">
                                                     <input type="number" value={xpValue} onChange={e => setXpValue(parseInt(e.target.value) || 0)}
@@ -1245,14 +1335,17 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                     <button onClick={() => setEditingXp(null)} className="text-dark-400 hover:text-white text-sm">✕</button>
                                                 </div>
                                             ) : (
-                                                <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
-                                                    className="text-amber-400 font-bold text-sm hover:text-amber-300 cursor-pointer transition-colors" title="დააკლიკე რედაქტირებისთვის">
-                                                    {u.xp_points || 0}
-                                                </button>
+                                                <div className="flex items-center justify-center space-x-2">
+                                                    <span className="text-amber-400 font-bold text-sm">⚡ {u.xp_points || 0}</span>
+                                                    <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
+                                                        className="p-1.5 rounded-lg bg-dark-800 text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all opacity-0 group-hover:opacity-100">
+                                                        <HiPencil className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
                                             )}
                                         </td>
                                         {/* სტატუსი */}
-                                        <td className="p-4 text-center">
+                                        <td className="p-4 text-center hidden sm:table-cell">
                                             <span className={`inline-flex items-center text-xs px-2.5 py-1 rounded-full font-medium ${u.is_active ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'}`}>
                                                 <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${u.is_active ? 'bg-green-400' : 'bg-red-400'}`} />
                                                 {u.is_active ? 'აქტიური' : 'დაბლოკილი'}

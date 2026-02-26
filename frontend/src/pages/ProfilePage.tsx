@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
+import { HiUser, HiMail, HiCalendar, HiPencil, HiCheck, HiX, HiStar, HiFire, HiTrendingUp, HiBadgeCheck, HiAcademicCap } from 'react-icons/hi';
 import api from '../api/axios';
-import { HiAcademicCap, HiCode, HiFire, HiStar, HiTrendingUp, HiPencil } from 'react-icons/hi';
 import { useConfirm } from '../hooks/useConfirm';
 import toast from 'react-hot-toast';
+import { formatXP } from '../utils/formatters';
 
 export default function ProfilePage() {
     const { user, fetchProfile } = useAuthStore();
@@ -123,9 +124,9 @@ export default function ProfilePage() {
 
             {/* სტატისტიკა */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="card text-center p-6">
+                <div className="card text-center p-6" title={`${user?.xpPoints || 0} XP`}>
                     <HiStar className="w-8 h-8 text-amber-400 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-white">{user?.xpPoints || 0}</div>
+                    <div className="text-2xl font-bold text-white">{formatXP(user?.xpPoints || 0)}</div>
                     <div className="text-dark-400 text-sm">XP ქულა</div>
                 </div>
                 <div className="card text-center p-6">

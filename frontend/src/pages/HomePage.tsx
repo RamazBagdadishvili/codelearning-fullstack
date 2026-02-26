@@ -140,17 +140,19 @@ export default function HomePage() {
 
             {/* CTA */}
             {!isAuthenticated && (
-                <section className="py-20">
+                <section className="py-12 sm:py-20">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="card bg-gradient-to-br from-primary-900/50 to-accent-900/50 border-primary-700/30 text-center p-12">
-                            <h2 className="text-3xl font-bold text-white mb-4">მზად ხართ სწავლის დასაწყებად?</h2>
-                            <p className="text-dark-300 mb-8 max-w-lg mx-auto">
+                        <div className="card bg-gradient-to-br from-primary-900/50 to-accent-900/50 border-primary-700/30 text-center p-8 sm:p-12">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">მზად ხართ სწავლის დასაწყებად?</h2>
+                            <p className="text-dark-300 mb-8 max-w-lg mx-auto text-sm sm:text-base">
                                 შეუერთდით CodeLearning-ს და დაიწყეთ Front-End პროგრამირების სწავლა ქართულად, სრულიად უფასოდ.
                             </p>
-                            <Link to="/register" className="btn-primary text-lg px-8 py-4 inline-flex items-center justify-center gap-2 whitespace-nowrap">
-                                <span>უფასო რეგისტრაცია</span>
-                                <span className="text-xl">→</span>
-                            </Link>
+                            <div className="flex justify-center">
+                                <Link to="/register" className="btn-primary text-base sm:text-lg px-6 sm:px-8 py-3 sm:py-4 inline-flex items-center justify-center gap-2 whitespace-nowrap">
+                                    <span>უფასო რეგისტრაცია</span>
+                                    <span className="text-xl">→</span>
+                                </Link>
+                            </div>
                         </div>
                     </div>
                 </section>

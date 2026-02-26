@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/authStore';
 import { useState, useEffect } from 'react';
 import { HiMenu, HiX, HiUser, HiLogout, HiCog } from 'react-icons/hi';
 import NotificationBell from './NotificationBell';
+import { formatXP } from '../utils/formatters';
 
 
 export default function Navbar() {
@@ -56,8 +57,8 @@ export default function Navbar() {
                                         <HiCog className="w-5 h-5" />
                                     </Link>
                                 )}
-                                <div className="flex items-center space-x-1.5 ml-1.5 px-2.5 py-1.5 bg-dark-800 rounded-xl border border-dark-700">
-                                    <span className="text-amber-400 text-xs font-medium truncate max-w-[80px]">⚡ {user?.xpPoints || 0} XP</span>
+                                <div className="flex items-center space-x-1.5 ml-1.5 px-2.5 py-1.5 bg-dark-800 rounded-xl border border-dark-700" title={`${user?.xpPoints || 0} XP`}>
+                                    <span className="text-amber-400 text-xs font-medium truncate max-w-[80px]">⚡ {formatXP(user?.xpPoints || 0)} XP</span>
                                     <span className="text-dark-500">|</span>
                                     <span className="text-primary-400 text-xs font-medium">Lv.{user?.level || 1}</span>
                                 </div>
@@ -91,8 +92,8 @@ export default function Navbar() {
                                     <Link to="/achievements" onClick={() => setIsMenuOpen(false)} className="px-4 py-3 text-dark-200 hover:text-white rounded-lg hover:bg-dark-800">მიღწევები</Link>
                                     <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="px-4 py-3 text-dark-200 hover:text-white rounded-lg hover:bg-dark-800">პროფილი</Link>
                                     {(user?.role === 'admin' || user?.role === 'instructor') && <Link to="/admin" onClick={() => setIsMenuOpen(false)} className="px-4 py-3 text-amber-400 rounded-lg hover:bg-dark-800">მართვის პანელი</Link>}
-                                    <div className="flex items-center space-x-3 px-4 py-2">
-                                        <span className="text-amber-400 text-sm">⚡ {user?.xpPoints} XP</span>
+                                    <div className="flex items-center space-x-3 px-4 py-2" title={`${user?.xpPoints || 0} XP`}>
+                                        <span className="text-amber-400 text-sm">⚡ {formatXP(user?.xpPoints || 0)} XP</span>
                                         <span className="text-primary-400 text-sm">Level {user?.level}</span>
                                     </div>
                                     <button onClick={handleLogout} className="px-4 py-3 text-red-400 hover:bg-dark-800 rounded-lg text-left">გამოსვლა</button>

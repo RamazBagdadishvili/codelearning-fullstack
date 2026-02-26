@@ -188,22 +188,22 @@ export default function CourseDetailPage() {
                                     )}
                                 </div>
 
-                                <div className="min-w-0 pr-2">
-                                    <h3 className={`font-bold text-sm sm:text-lg transition-colors leading-tight ${isLocked ? 'text-dark-400' : 'text-white group-hover:text-primary-400'}`}>
+                                <div className="min-w-0 pr-1 flex-1">
+                                    <h3 className={`font-bold text-sm sm:text-lg transition-colors leading-tight truncate-two-lines ${isLocked ? 'text-dark-400' : 'text-white group-hover:text-primary-400'}`}>
                                         {lesson.title}
                                     </h3>
-                                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                                        <span className="flex items-center text-[10px] sm:text-xs font-medium text-dark-400">
+                                    <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-3 gap-y-1 mt-1">
+                                        <span className="flex items-center text-[9px] sm:text-xs font-medium text-dark-400">
                                             {lesson.content_type === 'theory' ? (
-                                                <><span className="mr-1">📖</span> თეორია</>
+                                                <>📖 თეორია</>
                                             ) : lesson.content_type === 'practice' ? (
-                                                <><span className="mr-1">💻</span> პრაქტიკა</>
+                                                <>💻 პრაქტიკა</>
                                             ) : (
-                                                <><span className="mr-1">📝</span> ქვიზი</>
+                                                <>📝 ქვიზი</>
                                             )}
                                         </span>
-                                        <span className="flex items-center text-[10px] sm:text-xs font-semibold text-amber-400/80">
-                                            <span className="mr-1">⚡</span> {lesson.xp_reward} XP
+                                        <span className="flex items-center text-[9px] sm:text-xs font-semibold text-amber-400/80">
+                                            ⚡ {lesson.xp_reward} XP
                                         </span>
                                     </div>
                                 </div>

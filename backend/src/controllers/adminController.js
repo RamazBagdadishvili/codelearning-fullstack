@@ -552,8 +552,8 @@ const updateUserLevel = async (req, res, next) => {
         const { id } = req.params;
         const { level } = req.body;
 
-        if (!level || level < 1 || level > 100) {
-            return res.status(400).json({ error: 'Level უნდა იყოს 1-დან 100-მდე.' });
+        if (!level || level < 1 || level > 200) {
+            return res.status(400).json({ error: 'Level უნდა იყოს 1-დან 200-მდე.' });
         }
 
         const result = await query(

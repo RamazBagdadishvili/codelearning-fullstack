@@ -185,9 +185,9 @@ const submitCode = async (req, res, next) => {
                     [lesson.xp_reward, req.user.id]
                 );
 
-                // Level-ის გადაანგარიშება (ყოველ 100 XP-ზე level იზრდება)
+                // Level-ის გადაანგარიშება (ყოველ 100 XP-ზე level იზრდება, მაქსიმუმ 200)
                 await query(
-                    'UPDATE users SET level = GREATEST(1, FLOOR(xp_points / 100) + 1) WHERE id = $1',
+                    'UPDATE users SET level = LEAST(200, GREATEST(1, FLOOR(xp_points / 100) + 1)) WHERE id = $1',
                     [req.user.id]
                 );
             } else {
