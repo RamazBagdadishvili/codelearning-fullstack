@@ -3,7 +3,7 @@ import { ConfirmModal } from '../components/ConfirmModal';
 
 interface UseConfirmResult {
     confirm: (message: string, title?: string) => Promise<boolean>;
-    ConfirmDialog: React.FC;
+    ConfirmDialog: React.ReactNode;
 }
 
 export const useConfirm = (): UseConfirmResult => {
@@ -31,7 +31,7 @@ export const useConfirm = (): UseConfirmResult => {
         if (resolver) resolver(false);
     }, [resolver]);
 
-    const ConfirmDialog = useCallback(() => (
+    const ConfirmDialog = (
         <ConfirmModal
             isOpen={isOpen}
             title={title}
@@ -39,7 +39,7 @@ export const useConfirm = (): UseConfirmResult => {
             onConfirm={handleConfirm}
             onCancel={handleCancel}
         />
-    ), [isOpen, title, message, handleConfirm, handleCancel]);
+    );
 
     return { confirm, ConfirmDialog };
 };

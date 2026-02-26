@@ -1288,7 +1288,7 @@ export default function AdminPage() {
             }
             {/* Preview Modal */}
             <LessonPreviewModal />
-            <ConfirmDialog />
+            {ConfirmDialog}
         </div>
     );
 }
@@ -1861,7 +1861,7 @@ function AchievementsTab() {
                     </div>
                 ))}
             </div>
-            <ConfirmDialog />
+            {ConfirmDialog}
         </div>
     );
 }
@@ -1986,7 +1986,7 @@ function SubmissionsTab({ onRefresh }: { onRefresh: () => void }) {
                     </div>
                 </div>
             )}
-            <ConfirmDialog />
+            {ConfirmDialog}
         </div>
     );
 }
@@ -2121,7 +2121,7 @@ function ManageCoursesModal({ user, allCourses, onClose }: { user: any; allCours
                     </button>
                 </div>
             </div>
-            <ConfirmDialog />
+            {ConfirmDialog}
         </div>
     );
 }

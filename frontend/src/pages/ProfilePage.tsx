@@ -224,7 +224,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
             )}
-            <ConfirmDialog />
+            {ConfirmDialog}
         </div>
     );
 }

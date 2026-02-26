@@ -256,7 +256,7 @@ export default function CourseDetailPage() {
                     <p className="text-dark-400">ამ კურსში ჯერ არ არის ლექციები.</p>
                 </div>
             )}
-            <ConfirmDialog />
+            {ConfirmDialog}
         </div>
     );
 }

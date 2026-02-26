@@ -27,7 +27,7 @@ const errorHandler = (err, req, res, next) => {
     // PostgreSQL foreign key შეცდომა
     if (err.code === '23503') {
         return res.status(400).json({
-            error: 'მითითებული რესურსი არ არსებობს.'
+            error: 'შეუძლებელია წაშლა: ეს რესურსი გამოიყენება სხვა მონაცემებში (მაგ: სტუდენტის პროგრესი).'
         });
     }
 
