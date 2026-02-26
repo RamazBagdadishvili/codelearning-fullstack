@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import CodeEditor from '../components/CodeEditor';
 import { useConfirm } from '../hooks/useConfirm';
-import { HiCog, HiPencil, HiDuplicate, HiChartBar, HiBeaker } from 'react-icons/hi';
+import { HiCog, HiPencil, HiDuplicate, HiChartBar, HiBeaker, HiEye, HiX, HiCode } from 'react-icons/hi';
 
 export default function AdminPage() {
     const { user } = useAuthStore();
@@ -35,6 +35,9 @@ export default function AdminPage() {
         solutionCode: '', challengeText: '', testCases: [] as { testName: string, testCode: string }[],
         hints: '', language: 'html', xpReward: 10, sortOrder: 0
     };
+    const [showFullPreview, setShowFullPreview] = useState(false);
+    const [previewKey, setPreviewKey] = useState(0);
+
     const [lessonForm, setLessonForm] = useState(initialLessonForm);
     const [previewMode, setPreviewMode] = useState<'editor' | 'preview'>('editor');
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
@@ -500,6 +503,130 @@ export default function AdminPage() {
         });
     };
 
+    // ─────────────────────────────────────────────────────────────
+    // Lesson Preview Modal Component
+    // ─────────────────────────────────────────────────────────────
+    const LessonPreviewModal = () => {
+        if (!showFullPreview) return null;
+
+        const lang = lessonForm.language || 'html';
+        const isTheoryOnly = lessonForm.contentType === 'theory' && !lessonForm.challengeText && !lessonForm.starterCode;
+
+        // Simplified renderers for preview (reusing logic from LessonPage)
+        const renderPreviewContent = (content: string) => {
+            if (!content) return null;
+            // Basic Markdown simulation for preview
+            return (
+                <div className="prose prose-invert max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                </div>
+            );
+        };
+
+        const previewSrcDoc = `
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { background: #0f172a; color: #e2e8f0; font-family: sans-serif; padding: 16px; margin: 0; }
+                    </style>
+                </head>
+                <body>
+                    ${lang === 'html' ? lessonForm.starterCode : `<script>${lessonForm.starterCode}<\/script>`}
+                </body>
+            </html>
+        `;
+
+        return (
+            <div className="fixed inset-0 z-[100] bg-dark-950 flex flex-col animate-fade-in">
+                {/* Preview Header */}
+                <div className="bg-dark-900 border-b border-dark-800 px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary-500/20 flex items-center justify-center text-primary-400">
+                            <HiEye className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="text-white font-bold leading-none">სტუდენტის ხედვა (Preview)</h2>
+                            <p className="text-dark-400 text-xs mt-1">ლექცია: {lessonForm.title || 'ახალი ლექცია'}</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => setShowFullPreview(false)}
+                        className="p-2 hover:bg-dark-800 rounded-xl text-dark-400 hover:text-white transition-all flex items-center gap-2 font-bold text-sm"
+                    >
+                        <HiX className="w-5 h-5" /> დახურვა
+                    </button>
+                </div>
+
+                {/* Preview Body (Mimics LessonPage) */}
+                <div className="flex-1 flex flex-col lg:flex-row overflow-hidden bg-dark-950">
+                    {/* Theory Column */}
+                    <div className="w-full lg:w-1/3 border-r border-dark-800 flex flex-col overflow-hidden">
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                            <h1 className="text-2xl font-black text-white mb-6 border-b border-dark-800 pb-3">{lessonForm.title}</h1>
+                            {renderPreviewContent(lessonForm.content)}
+                        </div>
+                        <div className="p-4 bg-dark-900/50 border-t border-dark-800 flex items-center justify-between">
+                            <span className="text-xs font-bold text-amber-400">⚡ {lessonForm.xpReward} XP</span>
+                            <span className="text-xs font-bold text-primary-400 uppercase">{lessonForm.contentType}</span>
+                        </div>
+                    </div>
+
+                    {/* Editor Column */}
+                    <div className="w-full lg:w-1/3 border-r border-dark-800 flex flex-col overflow-hidden bg-dark-900/20">
+                        <div className="p-3 border-b border-dark-800 bg-dark-900 flex items-center gap-2">
+                            <HiCode className="w-4 h-4 text-accent-400" />
+                            <span className="text-xs font-bold text-dark-400 uppercase tracking-widest">{lang} Editor</span>
+                        </div>
+
+                        {lessonForm.challengeText && (
+                            <div className="p-3">
+                                <div className="bg-primary-500/5 border border-primary-500/20 rounded-xl p-3">
+                                    <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest block mb-2">დავალება</span>
+                                    <div className="text-sm text-dark-200 prose prose-invert prose-sm max-w-none">
+                                        <ReactMarkdown>{lessonForm.challengeText}</ReactMarkdown>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex-1 p-3 pt-0 overflow-hidden">
+                            <div className="h-full rounded-xl border border-dark-700 overflow-hidden shadow-2xl">
+                                <CodeEditor
+                                    value={lessonForm.starterCode}
+                                    onChange={() => { }}
+                                    language={lang}
+                                    height="100%"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-3 flex gap-2">
+                            <button className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20">
+                                შემოწმება
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Preview Column */}
+                    <div className="w-full lg:flex-1 bg-white flex flex-col">
+                        <div className="bg-dark-900 p-2 border-b border-dark-800 flex items-center gap-2">
+                            <HiEye className="w-3.5 h-3.5 text-primary-400" />
+                            <span className="text-[10px] font-bold text-dark-400 uppercase tracking-widest">Live Preview</span>
+                        </div>
+                        <iframe
+                            key={previewKey}
+                            srcDoc={previewSrcDoc}
+                            className="w-full flex-1 border-0"
+                            title="Preview Content"
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     if (isLoading) {
         return <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-primary-500/30 border-t-primary-500 rounded-full animate-spin" /></div>;
     }
@@ -848,22 +975,33 @@ export default function AdminPage() {
                                             <div>
                                                 <div className="flex justify-between items-center mb-1">
                                                     <label className="block text-dark-300 text-sm font-medium">სათაური *</label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={handleGenerateFullLesson}
-                                                        disabled={isGenerating.full}
-                                                        className={`text-[10px] flex items-center px-2 py-0.5 rounded transition-all ${isGenerating.full ? 'bg-primary-500/20 text-primary-400 animate-pulse' : 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm shadow-primary-500/20'}`}
-                                                        title="ავტომატურად შექმენი მთლიანი ლექცია ამ სათაურით"
-                                                    >
-                                                        {isGenerating.full ? (
-                                                            <>
-                                                                <div className="w-2 h-2 border-2 border-t-white/30 border-white rounded-full animate-spin mr-1" />
-                                                                AI ფიქრობს...
-                                                            </>
-                                                        ) : (
-                                                            <>✨ Magic Wand (Full Lesson)</>
-                                                        )}
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowFullPreview(true)}
+                                                            className="text-[10px] flex items-center px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-all font-bold"
+                                                            title="ნახე როგორ გამოჩნდება ლექცია სტუდენტთან"
+                                                        >
+                                                            <HiEye className="w-3 h-3 mr-1" />
+                                                            LIVE PREVIEW
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleGenerateFullLesson}
+                                                            disabled={isGenerating.full}
+                                                            className={`text-[10px] flex items-center px-2 py-0.5 rounded transition-all ${isGenerating.full ? 'bg-primary-500/20 text-primary-400 animate-pulse' : 'bg-primary-500 text-white hover:bg-primary-600 shadow-sm shadow-primary-500/20'}`}
+                                                            title="ავტომატურად შექმენი მთლიანი ლექცია ამ სათაურით"
+                                                        >
+                                                            {isGenerating.full ? (
+                                                                <>
+                                                                    <div className="w-2 h-2 border-2 border-t-white/30 border-white rounded-full animate-spin mr-1" />
+                                                                    AI ფიქრობს...
+                                                                </>
+                                                            ) : (
+                                                                <>✨ Magic Wand (Full Lesson)</>
+                                                            )}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <input value={lessonForm.title} onChange={e => handleTitleChange(e.target.value)}
                                                     className="input-field bg-dark-900 border-dark-700" required placeholder="მაგ: HTML საფუძვლები" />
@@ -1148,7 +1286,9 @@ export default function AdminPage() {
                     <SubmissionsTab onRefresh={fetchData} />
                 )
             }
-        </div >
+            {/* Preview Modal */}
+            <LessonPreviewModal />
+        </div>
     );
 }
 

@@ -330,7 +330,10 @@ const generateLessonContent = async (req, res, next) => {
         const { title, courseTitle } = req.body;
         if (!title) return res.status(400).json({ error: 'სათაური აუცილებელია.' });
 
-        if (!genAI) return res.status(503).json({ error: 'AI სერვისი მიუწვდომელია.' });
+        if (!genAI) {
+            console.error('AI Error: GEMINI_API_KEY is missing in environment variables.');
+            return res.status(503).json({ error: 'AI სერვისი მიუწვდომელია. გთხოვთ შეამოწმოთ GEMINI_API_KEY .env ფაილში.' });
+        }
 
         const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const prompt = `
@@ -341,9 +344,20 @@ const generateLessonContent = async (req, res, next) => {
         `;
 
         const result = await model.generateContent(prompt);
-        res.json({ content: result.response.text() });
+        if (!result.response) throw new Error('AI-მ არ დააბრუნა პასუხი (Empty Response).');
+
+        const responseText = result.response.text();
+        res.json({ content: responseText });
     } catch (error) {
-        next(error);
+        console.error('Gemini API Connection Error:', error);
+        // თუ სპეციფიკური შეცდომაა Google-ის მხრიდან
+        if (error.message?.includes('API_KEY_INVALID')) {
+            return res.status(401).json({ error: 'არასწორი API Key. გადაამოწმეთ .env ფაილი.' });
+        }
+        if (error.message?.includes('quota')) {
+            return res.status(429).json({ error: 'ლიმიტი ამოიწურა ან საჭიროა ბალანსის შევსება (10$).' });
+        }
+        res.status(500).json({ error: 'AI სერვერთან კავშირი ვერ დამყარდა: ' + error.message });
     }
 };
 
