@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { HiUser, HiLogout, HiCog, HiBookOpen, HiChartBar, HiStar, HiLogin, HiUserAdd, HiArrowLeft, HiPlay } from 'react-icons/hi';
 import NotificationBell from './NotificationBell';
 
+// Build version: 2026-02-28T02:35
+
 export default function Navbar() {
     const { isAuthenticated, user, logout, initialize } = useAuthStore();
     const [isScrolled, setIsScrolled] = useState(false);
