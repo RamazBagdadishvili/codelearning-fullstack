@@ -1377,8 +1377,8 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
         setDeleteConfirmName('');
     };
 
-    const handleLevelChange = async (userId: string, delta: number, currentLevel: number) => {
-        const newLevel = Math.max(1, Math.min(100, currentLevel + delta));
+    const handleLevelChange = async (userId: string, newLevelValue: number) => {
+        const newLevel = Math.max(1, Math.min(200, newLevelValue));
         try {
             const { data } = await api.put(`/admin/users/${userId}/level`, { level: newLevel });
             toast.success(data.message);
@@ -1520,7 +1520,7 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                             {filteredUsers.map(u => {
                                 const rc = ROLE_CONFIG[u.role] || ROLE_CONFIG.student;
                                 return (
-                                    <tr key={u.id} className={`border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors ${u.role === 'admin' ? 'bg-amber-500/5' : ''} ${!u.is_active ? 'opacity-50' : ''} ${selectedUserIds.includes(u.id) ? 'bg-primary-600/5' : ''}`}>
+                                    <tr key={u.id} className={`group border-b border-dark-800/50 hover:bg-dark-800/30 transition-colors ${u.role === 'admin' ? 'bg-amber-500/5' : ''} ${!u.is_active ? 'opacity-50' : ''} ${selectedUserIds.includes(u.id) ? 'bg-primary-600/5' : ''}`}>
                                         <td className="p-4">
                                             <input type="checkbox"
                                                 checked={selectedUserIds.includes(u.id)}
@@ -1568,11 +1568,11 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                         <label className="text-dark-500 text-[9px] uppercase font-bold text-center block">Level</label>
                                                         <div className="flex justify-center">
                                                             <input type="number" min="1" max="200" defaultValue={u.level}
-                                                                onBlur={(e) => { const val = parseInt(e.target.value); if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level); }}
+                                                                onBlur={(e) => { const val = parseInt(e.target.value); if (val && val !== u.level) handleLevelChange(u.id, val); }}
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === 'Enter') {
                                                                         const val = parseInt((e.target as HTMLInputElement).value);
-                                                                        if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level);
+                                                                        if (val && val !== u.level) handleLevelChange(u.id, val);
                                                                         (e.target as HTMLInputElement).blur();
                                                                     }
                                                                 }}
@@ -1592,7 +1592,7 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                             </div>
                                                         ) : (
                                                             <div className="flex items-center justify-center space-x-1">
-                                                                <span className="text-amber-400 font-bold text-xs">⚡ {formatXP(u.xp_points || 0)}</span>
+                                                                <span className="text-amber-400 font-bold text-xs">⚡ {u.xp_points || 0}</span>
                                                                 <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
                                                                     className="p-1 rounded-lg bg-dark-800 text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all">
                                                                     <HiPencil className="w-3 h-3" />
@@ -1649,12 +1649,12 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                     defaultValue={u.level}
                                                     onBlur={(e) => {
                                                         const val = parseInt(e.target.value);
-                                                        if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level);
+                                                        if (val && val !== u.level) handleLevelChange(u.id, val);
                                                     }}
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Enter') {
                                                             const val = parseInt((e.target as HTMLInputElement).value);
-                                                            if (val && val !== u.level) handleLevelChange(u.id, val - u.level, u.level);
+                                                            if (val && val !== u.level) handleLevelChange(u.id, val);
                                                             (e.target as HTMLInputElement).blur();
                                                         }
                                                     }}
@@ -1673,7 +1673,7 @@ function UsersTab({ users, allCourses, currentUserId, onRefresh }: { users: any[
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-center space-x-2">
-                                                    <span className="text-amber-400 font-bold text-sm">⚡ {formatXP(u.xp_points || 0)}</span>
+                                                    <span className="text-amber-400 font-bold text-sm">⚡ {u.xp_points || 0}</span>
                                                     <button onClick={() => { setEditingXp(u.id); setXpValue(u.xp_points || 0); }}
                                                         className="p-1.5 rounded-lg bg-dark-800 text-dark-400 hover:text-primary-400 hover:bg-dark-700 transition-all opacity-0 group-hover:opacity-100">
                                                         <HiPencil className="w-3.5 h-3.5" />
