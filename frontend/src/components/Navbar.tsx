@@ -27,7 +27,7 @@ export default function Navbar() {
 
     const lastLessonUrl = localStorage.getItem('lastLessonUrl') || '/courses';
 
-    // ძირითადი ტაბები
+    // ძირითადი ტაბები (Mobile)
     const mobileTabs = [
         { path: '/courses', icon: <HiBookOpen className="w-5 h-5" />, label: 'კურსები' },
         { path: '/leaderboard', icon: <HiChartBar className="w-5 h-5" />, label: 'ლიდერბორდი' },
@@ -38,13 +38,13 @@ export default function Navbar() {
                     <HiPlay className="w-6 h-6 ml-0.5" />
                 </div>
             ),
-            label: 'სწავლა',
+            label: 'განაგრძე სწავლა',
             isSpecial: true
         },
         { path: '/achievements', icon: <HiStar className="w-5 h-5" />, label: 'მიღწევები' }
     ];
 
-    // ავტორიზაციის ღილაკი ცალკე, რომ ყოველთვის გამოჩნდეს
+    // ავტორიზაციის ღილაკი ცალკე (Mobile)
     const authTab = isAuthenticated
         ? { path: '#', icon: <HiLogout className="w-5 h-5" />, label: 'გასვლა', onClick: (e: React.MouseEvent) => { e.preventDefault(); handleLogout(); } }
         : { path: '/login', icon: <HiLogin className="w-5 h-5" />, label: 'შესვლა' };
@@ -54,7 +54,7 @@ export default function Navbar() {
             <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'glass shadow-lg shadow-dark-950/50' : 'bg-transparent'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        {/* ლოგო + ვერსიის ნიშანი (შესამოწმებლად) */}
+                        {/* ლოგო + ვერსიის ნიშანი */}
                         <Link to="/" className="flex items-center space-x-2 group">
                             <span className="text-2xl">💻</span>
                             <div className="flex flex-col">
@@ -63,12 +63,17 @@ export default function Navbar() {
                             </div>
                         </Link>
 
-                        {/* Desktop მენიუ (უხილავია ტელეფონზე) */}
+                        {/* Desktop მენიუ */}
                         <div className="hidden md:flex items-center space-x-1">
                             <Link to="/courses" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800">კურსები</Link>
                             <Link to="/leaderboard" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800">ლიდერბორდი</Link>
+
                             {isAuthenticated ? (
                                 <>
+                                    <Link to={lastLessonUrl} className="px-4 py-2 text-primary-400 hover:text-primary-300 font-bold rounded-lg hover:bg-dark-800 flex items-center space-x-1.5">
+                                        <HiPlay className="w-4 h-4" />
+                                        <span>განაგრძე სწავლა</span>
+                                    </Link>
                                     <Link to="/achievements" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800">მიღწევები</Link>
                                     <Link to="/profile" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 flex items-center space-x-2">
                                         <HiUser className="w-4 h-4" />
@@ -80,8 +85,9 @@ export default function Navbar() {
                                         </Link>
                                     )}
                                     <NotificationBell />
-                                    <button onClick={handleLogout} className="ml-2 px-3 py-2 text-dark-400 hover:text-red-400 rounded-lg hover:bg-dark-800">
+                                    <button onClick={handleLogout} className="ml-2 px-3 py-2 text-dark-400 hover:text-red-400 rounded-lg hover:bg-dark-800 flex items-center space-x-1">
                                         <HiLogout className="w-5 h-5" />
+                                        <span className="text-sm">გასვლა</span>
                                     </button>
                                 </>
                             ) : (
