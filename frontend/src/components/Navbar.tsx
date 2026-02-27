@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { useState, useEffect } from 'react';
-import { HiUser, HiLogout, HiCog, HiBookOpen, HiChartBar, HiStar, HiLogin, HiUserAdd } from 'react-icons/hi';
+import { HiUser, HiLogout, HiCog, HiBookOpen, HiChartBar, HiStar, HiLogin, HiUserAdd, HiArrowLeft, HiPlay } from 'react-icons/hi';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
@@ -20,21 +20,29 @@ export default function Navbar() {
 
     const handleLogout = () => { logout(); navigate('/'); };
 
-    const navItemsAuth = [
+    const lastLessonUrl = localStorage.getItem('lastLessonUrl') || '/courses';
+
+    const mobileTabs = [
         { path: '/courses', icon: <HiBookOpen className="w-5 h-5" />, label: 'კურსები' },
-        { path: '/leaderboard', icon: <HiChartBar className="w-5 h-5" />, label: 'ლიდერბორდი' },
+        { path: '/leaderboard', icon: <HiChartBar className="w-5 h-5" />, label: 'Lead' },
+        {
+            path: lastLessonUrl,
+            icon: (
+                <div className="flex items-center justify-center w-12 h-12 bg-primary-500 rounded-full text-white -mt-8 shadow-lg shadow-primary-500/40 border-4 border-dark-900">
+                    <HiPlay className="w-6 h-6 ml-0.5" />
+                </div>
+            ),
+            label: 'სწავლა',
+            isSpecial: true
+        },
         { path: '/achievements', icon: <HiStar className="w-5 h-5" />, label: 'მიღწევები' },
-        { path: '/profile', icon: <HiUser className="w-5 h-5" />, label: 'პროფილი' },
+        {
+            path: isAuthenticated ? '#' : '/login',
+            icon: isAuthenticated ? <HiLogout className="w-5 h-5" /> : <HiLogin className="w-5 h-5" />,
+            label: isAuthenticated ? 'გასვლა' : 'შესვლა',
+            onClick: isAuthenticated ? (e: React.MouseEvent) => { e.preventDefault(); handleLogout(); } : undefined
+        },
     ];
-
-    const navItemsGuest = [
-        { path: '/courses', icon: <HiBookOpen className="w-5 h-5" />, label: 'კურსები' },
-        { path: '/leaderboard', icon: <HiChartBar className="w-5 h-5" />, label: 'ლიდერბორდი' },
-        { path: '/login', icon: <HiLogin className="w-5 h-5" />, label: 'შესვლა' },
-        { path: '/register', icon: <HiUserAdd className="w-5 h-5" />, label: 'რეგისტრაცია' },
-    ];
-
-    const tabs = isAuthenticated ? navItemsAuth : navItemsGuest;
 
     return (
         <>
@@ -85,23 +93,57 @@ export default function Navbar() {
                             )}
                         </div>
 
-                        {/* Mobile Right Controls (Notifications) */}
-                        <div className="md:hidden flex items-center">
-                            {isAuthenticated && <NotificationBell />}
+                        {/* Mobile Right Controls (Notifications & Profile) */}
+                        <div className="md:hidden flex items-center space-x-3">
+                            {isAuthenticated && (
+                                <>
+                                    <NotificationBell />
+                                    <Link to="/profile" className="flex items-center">
+                                        {user?.avatarUrl ? (
+                                            <img
+                                                src={user.avatarUrl}
+                                                alt="პროფილი"
+                                                className="w-8 h-8 rounded-full border border-primary-500/50 object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-8 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center text-primary-400">
+                                                <HiUser className="w-5 h-5" />
+                                            </div>
+                                        )}
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
             </nav>
 
             {/* Mobile Bottom Tab Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-800 z-[60] flex justify-between items-center pb-[env(safe-area-inset-bottom)]">
-                {tabs.map(tab => {
-                    const isActive = location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(tab.path));
-                    return (
-                        <Link key={tab.path} to={tab.path}
-                            className={`flex flex-col items-center justify-center w-full py-2 gap-1 transition-colors ${isActive ? 'text-primary-400' : 'text-dark-400 hover:text-dark-200'}`}>
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-800 z-[60] flex justify-around items-center pb-[env(safe-area-inset-bottom)] px-1">
+                {mobileTabs.map((tab, idx) => {
+                    const isHashBack = tab.path === '#back';
+                    const isLogout = tab.path === '#' && isAuthenticated;
+                    const isActive = !isHashBack && !isLogout && (location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(tab.path)));
+
+                    const content = (
+                        <div className={`flex flex-col items-center justify-center w-full py-2 gap-1 transition-colors ${isActive ? 'text-primary-400' : 'text-dark-400 hover:text-dark-200'}`}>
                             {tab.icon}
-                            <span className="text-[10px] font-bold tracking-wide">{tab.label}</span>
+                            {!tab.isSpecial && <span className="text-[9px] font-bold tracking-tight text-center">{tab.label}</span>}
+                            {tab.isSpecial && <span className="text-[9px] font-black tracking-tight text-primary-400 -mt-1">{tab.label}</span>}
+                        </div>
+                    );
+
+                    if (tab.onClick) {
+                        return (
+                            <button key={idx} onClick={tab.onClick} className="flex-1 outline-none">
+                                {content}
+                            </button>
+                        );
+                    }
+
+                    return (
+                        <Link key={tab.path} to={tab.path} className="flex-1">
+                            {content}
                         </Link>
                     );
                 })}
