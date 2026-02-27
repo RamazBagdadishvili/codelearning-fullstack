@@ -10,7 +10,9 @@ export default function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    useEffect(() => { initialize(); }, []);
+    useEffect(() => {
+        initialize();
+    }, [initialize]);
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -18,10 +20,14 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const handleLogout = () => { logout(); navigate('/'); };
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     const lastLessonUrl = localStorage.getItem('lastLessonUrl') || '/courses';
 
+    // ძირითადი ტაბები
     const mobileTabs = [
         { path: '/courses', icon: <HiBookOpen className="w-5 h-5" />, label: 'კურსები' },
         { path: '/leaderboard', icon: <HiChartBar className="w-5 h-5" />, label: 'ლიდერბორდი' },
@@ -35,53 +41,46 @@ export default function Navbar() {
             label: 'სწავლა',
             isSpecial: true
         },
-        { path: '/achievements', icon: <HiStar className="w-5 h-5" />, label: 'მიღწევები' },
-        {
-            path: isAuthenticated ? '#' : '/login',
-            icon: isAuthenticated ? <HiLogout className="w-5 h-5" /> : <HiLogin className="w-5 h-5" />,
-            label: isAuthenticated ? 'გასვლა' : 'შესვლა',
-            onClick: isAuthenticated ? (e: React.MouseEvent) => { e.preventDefault(); handleLogout(); } : undefined
-        },
+        { path: '/achievements', icon: <HiStar className="w-5 h-5" />, label: 'მიღწევები' }
     ];
+
+    // ავტორიზაციის ღილაკი ცალკე, რომ ყოველთვის გამოჩნდეს
+    const authTab = isAuthenticated
+        ? { path: '#', icon: <HiLogout className="w-5 h-5" />, label: 'გასვლა', onClick: (e: React.MouseEvent) => { e.preventDefault(); handleLogout(); } }
+        : { path: '/login', icon: <HiLogin className="w-5 h-5" />, label: 'შესვლა' };
 
     return (
         <>
             <nav className={`sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'glass shadow-lg shadow-dark-950/50' : 'bg-transparent'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        {/* ლოგო */}
+                        {/* ლოგო + ვერსიის ნიშანი (შესამოწმებლად) */}
                         <Link to="/" className="flex items-center space-x-2 group">
                             <span className="text-2xl">💻</span>
-                            <span className="text-xl font-bold gradient-text group-hover:opacity-80 transition-opacity">
-                                CodeLearning
-                            </span>
+                            <div className="flex flex-col">
+                                <span className="text-xl font-bold gradient-text">CodeLearning</span>
+                                <span className="text-[8px] text-primary-500 opacity-50">v2.1</span>
+                            </div>
                         </Link>
 
-                        {/* Desktop მენიუ */}
+                        {/* Desktop მენიუ (უხილავია ტელეფონზე) */}
                         <div className="hidden md:flex items-center space-x-1">
-                            <Link to="/courses" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 transition-all">
-                                კურსები
-                            </Link>
-                            <Link to="/leaderboard" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 transition-all">
-                                ლიდერბორდი
-                            </Link>
-
+                            <Link to="/courses" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800">კურსები</Link>
+                            <Link to="/leaderboard" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800">ლიდერბორდი</Link>
                             {isAuthenticated ? (
                                 <>
-                                    <Link to="/achievements" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 transition-all">
-                                        მიღწევები
-                                    </Link>
-                                    <Link to="/profile" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 transition-all flex items-center space-x-2">
+                                    <Link to="/achievements" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800">მიღწევები</Link>
+                                    <Link to="/profile" className="px-4 py-2 text-dark-300 hover:text-white rounded-lg hover:bg-dark-800 flex items-center space-x-2">
                                         <HiUser className="w-4 h-4" />
                                         <span>პროფილი</span>
                                     </Link>
                                     {(user?.role === 'admin' || user?.role === 'instructor') && (
-                                        <Link to="/admin" aria-label="მართვის პანელი" className="flex items-center px-2.5 py-2 text-amber-400 hover:text-amber-300 rounded-lg hover:bg-dark-800 transition-all" title="მართვის პანელი">
+                                        <Link to="/admin" className="px-2.5 py-2 text-amber-400 hover:text-amber-300 rounded-lg hover:bg-dark-800">
                                             <HiCog className="w-5 h-5" />
                                         </Link>
                                     )}
                                     <NotificationBell />
-                                    <button aria-label="გამოსვლა" onClick={handleLogout} className="ml-2 px-3 py-2 text-dark-400 hover:text-red-400 rounded-lg hover:bg-dark-800 transition-all">
+                                    <button onClick={handleLogout} className="ml-2 px-3 py-2 text-dark-400 hover:text-red-400 rounded-lg hover:bg-dark-800">
                                         <HiLogout className="w-5 h-5" />
                                     </button>
                                 </>
@@ -93,20 +92,16 @@ export default function Navbar() {
                             )}
                         </div>
 
-                        {/* Mobile Right Controls (Notifications & Profile) */}
+                        {/* Mobile Header (Notifications & Profile) */}
                         <div className="md:hidden flex items-center space-x-3">
                             {isAuthenticated && (
                                 <>
                                     <NotificationBell />
-                                    <Link to="/profile" className="flex items-center">
+                                    <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border border-primary-500/50">
                                         {user?.avatarUrl ? (
-                                            <img
-                                                src={user.avatarUrl}
-                                                alt="პროფილი"
-                                                className="w-8 h-8 rounded-full border border-primary-500/50 object-cover"
-                                            />
+                                            <img src={user.avatarUrl} alt="პროფილი" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-8 h-8 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center text-primary-400">
+                                            <div className="w-full h-full bg-dark-800 flex items-center justify-center text-primary-400">
                                                 <HiUser className="w-5 h-5" />
                                             </div>
                                         )}
@@ -118,31 +113,30 @@ export default function Navbar() {
                 </div>
             </nav>
 
-            {/* Mobile Bottom Tab Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-800 z-[60] flex justify-around items-center pb-[env(safe-area-inset-bottom)] px-1">
-                {mobileTabs.map((tab, idx) => {
-                    const isHashBack = tab.path === '#back';
-                    const isLogout = tab.path === '#' && isAuthenticated;
-                    const isActive = !isHashBack && !isLogout && (location.pathname === tab.path || (tab.path !== '/' && location.pathname.startsWith(tab.path)));
+            {/* Mobile Bottom Bar */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-800 z-[60] flex justify-around items-center pb-2 pt-1 px-1">
+                {[...mobileTabs, authTab].map((tab, idx) => {
+                    const isActive = location.pathname === tab.path;
 
                     const content = (
-                        <div className={`flex flex-col items-center justify-center w-full py-2 gap-1 transition-colors ${isActive ? 'text-primary-400' : 'text-dark-400 hover:text-dark-200'}`}>
+                        <div className={`flex flex-col items-center justify-center py-1 gap-1 ${isActive ? 'text-primary-400' : 'text-dark-400'}`}>
                             {tab.icon}
-                            {!tab.isSpecial && <span className="text-[9px] font-bold tracking-tight text-center">{tab.label}</span>}
-                            {tab.isSpecial && <span className="text-[9px] font-black tracking-tight text-primary-400 -mt-1">{tab.label}</span>}
+                            <span className={`text-[9px] ${tab.isSpecial ? 'font-black text-primary-400' : 'font-medium'}`}>
+                                {tab.label}
+                            </span>
                         </div>
                     );
 
-                    if (tab.onClick) {
+                    if ('onClick' in tab && tab.onClick) {
                         return (
-                            <button key={idx} onClick={tab.onClick} className="flex-1 outline-none">
+                            <button key={idx} onClick={tab.onClick} className="flex-1 fill-none outline-none">
                                 {content}
                             </button>
                         );
                     }
 
                     return (
-                        <Link key={tab.path} to={tab.path} className="flex-1">
+                        <Link key={tab.path + idx} to={tab.path} className="flex-1">
                             {content}
                         </Link>
                     );
