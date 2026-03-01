@@ -7,4 +7,3 @@ dist
 build
 .git
 setup_neon_db.js
-*.sql
