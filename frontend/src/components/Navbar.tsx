@@ -102,6 +102,11 @@ export default function Navbar() {
                         <div className="md:hidden flex items-center space-x-3">
                             {isAuthenticated && (
                                 <>
+                                    {(user?.role === 'admin' || user?.role === 'instructor') && (
+                                        <Link to="/admin" className="text-amber-400 hover:text-amber-300 p-1 rounded-lg hover:bg-dark-800">
+                                            <HiCog className="w-6 h-6" />
+                                        </Link>
+                                    )}
                                     <NotificationBell />
                                     <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden border border-primary-500/50">
                                         {user?.avatarUrl ? (
@@ -127,7 +132,7 @@ export default function Navbar() {
                     const content = (
                         <div className={`flex flex-col items-center justify-center py-1 gap-1 ${isActive ? 'text-primary-400' : 'text-dark-400'}`}>
                             {tab.icon}
-                            <span className={`text-[9px] ${tab.isSpecial ? 'font-black text-primary-400' : 'font-medium'}`}>
+                            <span className={`text-[9px] ${'isSpecial' in tab && tab.isSpecial ? 'font-black text-primary-400' : 'font-medium'}`}>
                                 {tab.label}
                             </span>
                         </div>

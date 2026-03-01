@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/authStore';
-import { Link } from 'react-router-dom';
-import { HiUser, HiMail, HiCalendar, HiPencil, HiCheck, HiX, HiStar, HiFire, HiTrendingUp, HiBadgeCheck, HiAcademicCap, HiArrowRight, HiTrendingUp as HiTrendingUpIcon } from 'react-icons/hi';
+import { Link, useNavigate } from 'react-router-dom';
+import { HiUser, HiMail, HiCalendar, HiPencil, HiCheck, HiX, HiStar, HiFire, HiTrendingUp, HiBadgeCheck, HiAcademicCap, HiArrowRight, HiTrendingUp as HiTrendingUpIcon, HiLogout } from 'react-icons/hi';
 import api from '../api/axios';
 import { useConfirm } from '../hooks/useConfirm';
 import toast from 'react-hot-toast';
@@ -11,7 +11,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ka } from 'date-fns/locale';
 
 export default function ProfilePage() {
-    const { user, fetchProfile } = useAuthStore();
+    const { user, fetchProfile, logout } = useAuthStore();
+    const navigate = useNavigate();
     const [progress, setProgress] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
@@ -118,6 +119,10 @@ export default function ProfilePage() {
                                     <button onClick={startEditing}
                                         className="ml-2 px-3 py-1.5 bg-dark-700 hover:bg-dark-600 text-primary-400 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5">
                                         <HiPencil className="w-3.5 h-3.5" /> პროფილის რედაქტირება
+                                    </button>
+                                    <button onClick={() => { logout(); navigate('/'); }}
+                                        className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 focus:outline-none">
+                                        <HiLogout className="w-3.5 h-3.5" /> გასვლა
                                     </button>
                                 </div>
                             </>

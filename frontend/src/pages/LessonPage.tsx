@@ -14,26 +14,8 @@ import {
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import LessonComments from '../components/LessonComments';
 
-// ─────────────────────────────────────────────────────────────
-// Georgian typo fixer (skips code blocks & inline code)
-// ─────────────────────────────────────────────────────────────
-const KA_MAP: Record<string, string> = {
-    'a': 'ა', 'b': 'ბ', 'c': 'კ', 'd': 'დ', 'e': 'ე', 'f': 'ფ', 'g': 'გ',
-    'h': 'ჰ', 'i': 'ი', 'j': 'ჟ', 'k': 'კ', 'l': 'ლ', 'm': 'მ', 'n': 'ნ',
-    'o': 'ო', 'p': 'პ', 'q': 'ქ', 'r': 'რ', 's': 'ს', 't': 'ტ', 'u': 'უ',
-    'v': 'ვ', 'w': 'წ', 'x': 'ხ', 'y': 'ყ', 'z': 'ზ'
-};
-const fixTypos = (text: any): string => {
-    if (!text || typeof text !== 'string') return '';
-    const saved: string[] = [];
-    let t = text
-        .replace(/```[\s\S]*?```/g, m => { saved.push(m); return `\x00CB${saved.length - 1}\x00`; })
-        .replace(/`[^`]+`/g, m => { saved.push(m); return `\x00CB${saved.length - 1}\x00`; });
-    t = t.replace(/([a-zA-Z]+)(?=[\u10D0-\u10FF])/g, (m: string) =>
-        m.toLowerCase() === 'hi' ? 'ი' : m.split('').map((c: string) => KA_MAP[c.toLowerCase()] || c).join('')
-    );
-    return t.replace(/\x00CB(\d+)\x00/g, (_: string, i: string) => saved[+i]);
-};
+import { fixTypos } from '../utils/georgianUtils';
+import { Lesson, Course } from '../types';
 
 // ─────────────────────────────────────────────────────────────
 // Parse hints from DB (may be JSON string or array)
@@ -223,8 +205,8 @@ const ConsoleOutput = ({ lines, onClear, onExplain, isExplaining, explanation, o
 // ─────────────────────────────────────────────────────────────
 export default function LessonPage() {
     const { courseSlug, lessonSlug } = useParams();
-    const [lesson, setLesson] = useState<any>(null);
-    const [course, setCourse] = useState<any>(null);
+    const [lesson, setLesson] = useState<Lesson | null>(null);
+    const [course, setCourse] = useState<Course | null>(null);
     const [navigation, setNavigation] = useState<any>({});
     const [code, setCode] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
